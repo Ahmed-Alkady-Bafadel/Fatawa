@@ -1,3 +1,5 @@
+import 'package:fatawa/LoginPage.dart';
+import 'package:fatawa/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -9,52 +11,34 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(colorScheme: .fromSeed(seedColor: Colors.deepPurple)),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+      debugShowCheckedModeBanner: false,
+      title: 'الفتاوى',
+      // 1. تفعيل اتجاه اليمين لليسار (RTL) افتراضياً في كل التطبيق
+      builder: (context, child) {
+        return Directionality(
+          textDirection: TextDirection.rtl,
+          child: child!,
+        );
+      },
+      // 2. تطبيق الثوابت والوضع الفاتح
+      theme: ThemeData(
+        fontFamily: 'IBMPlexSansArabic',
+        scaffoldBackgroundColor: AppColors.backgroundLight,
+        colorScheme: ColorScheme.fromSeed(seedColor: AppColors.primaryGreen),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: .center,
-          children: [
-            const Text('You have pushed the button this many times:'),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
+      // مجهز للوضع الليلي مستقبلاً
+      darkTheme: ThemeData(
+        fontFamily: 'Cairo',
+        scaffoldBackgroundColor: AppColors.backgroundDark,
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: AppColors.primaryGreen,
+          brightness: Brightness.dark,
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
+      themeMode: ThemeMode.light, // يمكنك تغييره لاحقاً إلى ThemeMode.system
+      home: const LoginPage(),
     );
+
   }
 }
