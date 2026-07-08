@@ -1,3 +1,4 @@
+import 'package:fatawa/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
 class CustomTextField extends StatelessWidget {
@@ -5,6 +6,10 @@ class CustomTextField extends StatelessWidget {
   final String hint;
   final bool isPassword;
   final TextInputType keyboardType;
+    // أضفنا هذه المتغيرات الجديدة
+  final Widget? suffixIcon;
+  final bool filled;
+  final Color? fillColor;
 
   const CustomTextField({
     Key? key,
@@ -12,6 +17,9 @@ class CustomTextField extends StatelessWidget {
     required this.hint,
     this.isPassword = false,
     this.keyboardType = TextInputType.text,
+    this.suffixIcon,
+    this.filled = false,
+    this.fillColor,
   }) : super(key: key);
 
   @override
@@ -35,21 +43,25 @@ class CustomTextField extends StatelessWidget {
           keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: Color(0xFFBDBDBD), fontSize: 14),
+            hintStyle: TextStyle(color: AppColors.textHint, fontSize: 14),
+            filled: filled,
+            fillColor: fillColor,
+            suffixIcon: suffixIcon, // أيقونة العين أو غيرها
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              borderSide: BorderSide(color: filled ? Colors.transparent : AppColors.inputBorder),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFFE0E0E0)),
+              borderSide: BorderSide(color: filled ? Colors.transparent : AppColors.inputBorder),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF0F7A41)), // اللون الأخضر للتطبيق
+              borderSide: const BorderSide(color: AppColors.primaryGreen),
             ),
           ),
+
         ),
       ],
     );

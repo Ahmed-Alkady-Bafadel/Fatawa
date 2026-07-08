@@ -1,10 +1,12 @@
 import 'dart:io' show Platform;
+import 'package:fatawa/core/theme/app_colors.dart';
+import 'package:fatawa/presentation/pages/auth/sign_up_page.dart';
 import 'package:fatawa/widgets/custom_text_field.dart';
 import 'package:fatawa/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatelessWidget {
-  const LoginPage({Key? key}) : super(key: key);
+  const LoginPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,7 @@ class LoginPage extends StatelessWidget {
               children: [
                 // 1. صورة الشعار
                 Image.asset(
-                  'assets/image/logo-dome.png', // تأكد من مسار الصورة في مشروعك
+                  'assets/images/logo-dome.png', // تأكد من مسار الصورة في مشروعك
                   height: size.height * 0.12, // يأخذ 12% من ارتفاع الشاشة
                   fit: BoxFit.contain,
                 ),
@@ -145,22 +147,28 @@ class LoginPage extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    GestureDetector(
-                      onTap: () {
-                        // الانتقال لشاشة إنشاء الحساب
-                      },
-                      child: const Text(
-                        'سجل الآن ',
-                        style: TextStyle(
-                          color: Color(0xFF0F7A41),
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
                     const Text(
                       'ليس لديك حساب؟ ',
                       style: TextStyle(color: Color(0xFF757575)),
                     ),
+                    GestureDetector(
+                      onTap: () {
+                        // الانتقال لشاشة إنشاء الحساب
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const SignUpPage()),
+                        );
+                      },
+                      child: const Text(
+                        'سجل الآن',
+                        style: TextStyle(
+                          color: AppColors.primaryGreen,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+
+                    
                   ],
                 ),
                 const SizedBox(height: 24),
