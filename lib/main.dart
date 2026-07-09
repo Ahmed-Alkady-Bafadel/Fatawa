@@ -1,4 +1,4 @@
-import 'package:fatawa/presentation/pages/auth/LoginPage.dart';
+import 'package:fatawa/presentation/pages/auth/Login_page.dart';
 import 'package:fatawa/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 

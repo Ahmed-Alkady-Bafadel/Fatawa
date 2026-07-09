@@ -1,4 +1,5 @@
 import 'dart:io' show Platform;
+import 'package:fatawa/presentation/pages/auth/loading_page.dart';
 import 'package:fatawa/widgets/custom_text_field.dart';
 import 'package:fatawa/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
@@ -50,10 +51,9 @@ class _LoginPageState extends State<LoginPage> {
                       child: Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                    
                           color: Theme.of(context).cardColor,
                           borderRadius: BorderRadius.circular(24),
-                    
+
                           boxShadow: isDark
                               ? []
                               : [
@@ -161,13 +161,16 @@ class _LoginPageState extends State<LoginPage> {
                               PrimaryButton(
                                 text: 'دخول',
                                 onPressed: () {
-                                        if (_formKey.currentState!.validate()) {
-                                          print(
-                                            "اسم المستخدم: ${_usernameController.text}",
-                                          );
-                                        }
-                                      }
-                                    ,
+                                  if (_formKey.currentState!.validate()) {
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            const LoadingPage(),
+                                      ),
+                                    );
+                                  }
+                                },
                               ),
                               const SizedBox(height: 24),
 
