@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
       ),
       // مجهز للوضع الليلي مستقبلاً
       darkTheme: ThemeData(
-        fontFamily: 'Cairo',
+        fontFamily: 'IBMPlexSansArabic',
         scaffoldBackgroundColor: AppColors.backgroundDark,
         brightness: Brightness.dark,
         colorScheme: ColorScheme.fromSeed(

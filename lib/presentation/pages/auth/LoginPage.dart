@@ -1,180 +1,291 @@
 import 'dart:io' show Platform;
-import 'package:fatawa/core/theme/app_colors.dart';
-import 'package:fatawa/presentation/pages/auth/sign_up_page.dart';
 import 'package:fatawa/widgets/custom_text_field.dart';
 import 'package:fatawa/widgets/primary_button.dart';
 import 'package:flutter/material.dart';
+import '../../../core/theme/app_colors.dart';
+import 'sign_up_page.dart';
 
-class LoginPage extends StatelessWidget {
-  const LoginPage({super.key});
+class LoginPage extends StatefulWidget {
+  const LoginPage({Key? key}) : super(key: key);
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _usernameController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _isPasswordObscured = true;
+
+  @override
+  void dispose() {
+    _usernameController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
-    // نستخدم MediaQuery لمعرفة أبعاد الشاشة لجعل التصميم متجاوباً
     final size = MediaQuery.of(context).size;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9F8), // لون الخلفية الرمادي الفاتح
       body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            // تخصيص حركة التمرير بناءً على نظام التشغيل كما طلبت
-            physics: Platform.isIOS
-                ? const BouncingScrollPhysics()
-                : const ClampingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // 1. صورة الشعار
-                Image.asset(
-                  'assets/images/logo-dome.png', // تأكد من مسار الصورة في مشروعك
-                  height: size.height * 0.12, // يأخذ 12% من ارتفاع الشاشة
-                  fit: BoxFit.contain,
-                ),
-                const SizedBox(height: 24),
-
-                // 2. النصوص الترحيبية
-                const Text(
-                  'تسجيل الدخول',
-                  style: TextStyle(
-                    fontFamily: 'IBMPlexSansArabic',
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                    // fontFamily: 'MaterialIcons',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  'أدخل بيانات الاعتماد للمتابعة',
-                  style: TextStyle(fontSize: 14, color: Color(0xFF757575)),
-                ),
-                const SizedBox(height: 32),
-
-                // 3. البطاقة البيضاء التي تحتوي على الفورم
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(24),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              physics: Platform.isIOS
+                  ? const BouncingScrollPhysics()
+                  : const ClampingScrollPhysics(),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24.0,
+                        vertical: 20.0,
                       ),
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      // حقل اسم المستخدم
-                      const CustomTextField(
-                        label: 'اسم المستخدم',
-                        hint: 'اسم المستخدم',
-                      ),
-                      const SizedBox(height: 20),
-
-                      // حقل كلمة المرور
-                      const CustomTextField(
-                        label: 'كلمة المرور',
-                        hint: 'كلمة المرور',
-                        isPassword: true,
-                      ),
-                      const SizedBox(height: 32),
-
-                      // زر تسجيل الدخول
-                      PrimaryButton(
-                        text: 'دخول',
-                        onPressed: () {
-                          // سيتم ربط الـ Cubit والـ API هنا لاحقاً
-                        },
-                      ),
-                      const SizedBox(height: 24),
-
-                      // الفاصل الخطّي (أو)
-                      Row(
-                        children: [
-                          const Expanded(
-                            child: Divider(color: Color(0xFFE0E0E0)),
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: Text(
-                              'أو',
-                              style: TextStyle(color: Colors.grey.shade500),
-                            ),
-                          ),
-                          const Expanded(
-                            child: Divider(color: Color(0xFFE0E0E0)),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 24),
-
-                      // زر تسجيل الدخول بجوجل
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: OutlinedButton.icon(
-                          onPressed: () {},
-                          // icon: Image.asset(
-                          //   'assets/images/google_icon.png', // تأكد من إضافة أيقونة جوجل لمجلد الأصول
-                          //   height: 24,
-                          // ),
-                          icon: Icon(Icons.g_mobiledata, size: 24),
-                          label: const Text(
-                            'Continue with Google',
-                            style: TextStyle(
-                              color: Colors.black87,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFE0E0E0)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // 4. نص التسجيل أسفل البطاقة
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      'ليس لديك حساب؟ ',
-                      style: TextStyle(color: Color(0xFF757575)),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        // الانتقال لشاشة إنشاء الحساب
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => const SignUpPage()),
-                        );
-                      },
-                      child: const Text(
-                        'سجل الآن',
-                        style: TextStyle(
-                          color: AppColors.primaryGreen,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-
+                      child: Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
                     
-                  ],
+                          color: Theme.of(context).cardColor,
+                          borderRadius: BorderRadius.circular(24),
+                    
+                          boxShadow: isDark
+                              ? []
+                              : [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.04),
+                                    blurRadius: 20,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                        ),
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // الشعار
+                              Center(
+                                child: Image.asset(
+                                  height: size.height * 0.12,
+                                  'assets/images/logo-dome.png',
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+                              Text(
+                                'تسجيل الدخول',
+                                style: TextStyle(
+                                  fontSize: 24,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurface, // متجاوب مع الليل والنهار
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'أدخل بيانات الاعتماد للمتابعة',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: isDark
+                                      ? Colors.grey[400]
+                                      : AppColors.textSecondary,
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+
+                              // الحقول
+                              CustomTextField(
+                                label: 'اسم المستخدم',
+                                hint: 'أدخل اسم المستخدم',
+                                filled: true,
+                                controller: _usernameController,
+                                validator: (value) {
+                                  if (value == null || value.trim().isEmpty)
+                                    return 'هذا الحقل مطلوب';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              CustomTextField(
+                                label: 'كلمة المرور',
+                                hint: 'أدخل كلمة المرور',
+                                isPassword: _isPasswordObscured,
+                                filled: true,
+                                controller: _passwordController,
+                                validator: (value) {
+                                  if (value == null || value.isEmpty)
+                                    return 'كلمة المرور مطلوبة';
+                                  return null;
+                                },
+                                suffixIcon: IconButton(
+                                  icon: Icon(
+                                    _isPasswordObscured
+                                        ? Icons.visibility_off_outlined
+                                        : Icons.visibility_outlined,
+                                    color: isDark
+                                        ? Colors.grey[400]
+                                        : AppColors.textSecondary,
+                                  ),
+                                  onPressed: () {
+                                    setState(() {
+                                      _isPasswordObscured =
+                                          !_isPasswordObscured;
+                                    });
+                                  },
+                                ),
+                              ),
+
+                              const SizedBox(height: 12),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: GestureDetector(
+                                  onTap: () {},
+                                  child: const Text(
+                                    'نسيت كلمة المرور؟',
+                                    style: TextStyle(
+                                      color: AppColors.primaryGreen,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+
+                              // زر الدخول
+                              PrimaryButton(
+                                text: 'دخول',
+                                onPressed: () {
+                                        if (_formKey.currentState!.validate()) {
+                                          print(
+                                            "اسم المستخدم: ${_usernameController.text}",
+                                          );
+                                        }
+                                      }
+                                    ,
+                              ),
+                              const SizedBox(height: 24),
+
+                              // الفاصل
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Divider(
+                                      color: isDark
+                                          ? Colors.grey[800]
+                                          : AppColors.inputBorder,
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                    ),
+                                    child: Text(
+                                      'أو',
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.grey[400]
+                                            : AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Divider(
+                                      color: isDark
+                                          ? Colors.grey[800]
+                                          : AppColors.inputBorder,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 24),
+
+                              // زر تسجيل الدخول بواسطة جوجل
+                              Container(
+                                width: double.infinity,
+                                height: 50,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: isDark
+                                        ? Colors.grey[700]!
+                                        : AppColors.inputBorder,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                  color: isDark
+                                      ? const Color(0xFF2C2C2C)
+                                      : Colors.transparent,
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(
+                                      Icons.g_mobiledata,
+                                      size: 36,
+                                      color: Colors.red,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'المتابعة باستخدام Google',
+                                      style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Theme.of(
+                                          context,
+                                        ).colorScheme.onSurface,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
+
+                              // الانتقال لإنشاء حساب
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'ليس لديك حساب؟ ',
+                                    style: TextStyle(
+                                      color: isDark
+                                          ? Colors.grey[400]
+                                          : AppColors.textSecondary,
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder: (context) =>
+                                              const SignUpPage(),
+                                        ),
+                                      );
+                                    },
+                                    child: const Text(
+                                      'سجل الآن',
+                                      style: TextStyle(
+                                        color: AppColors.primaryGreen,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 24),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         ),
       ),
     );

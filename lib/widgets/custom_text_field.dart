@@ -6,10 +6,12 @@ class CustomTextField extends StatelessWidget {
   final String hint;
   final bool isPassword;
   final TextInputType keyboardType;
-    // أضفنا هذه المتغيرات الجديدة
   final Widget? suffixIcon;
   final bool filled;
   final Color? fillColor;
+  final TextEditingController? controller;
+  final String? Function(String?)? validator;
+  final void Function(String)? onChanged;
 
   const CustomTextField({
     Key? key,
@@ -20,6 +22,9 @@ class CustomTextField extends StatelessWidget {
     this.suffixIcon,
     this.filled = false,
     this.fillColor,
+    this.controller, // 👈 تمرير المتحكم
+    this.validator, // 👈 تمرير شرط التحقق
+    this.onChanged, // 👈 لتحديث حالة الزر أثناء الكتابة
   }) : super(key: key);
 
   @override
@@ -39,6 +44,10 @@ class CustomTextField extends StatelessWidget {
         const SizedBox(height: 8),
         // حقل الإدخال
         TextFormField(
+          controller: controller,
+          validator: validator,
+          onChanged: onChanged,
+          autovalidateMode: AutovalidateMode.onUserInteraction, // 👈 يظهر التنبيه فوراً عند الكتابة الخطأ
           obscureText: isPassword,
           keyboardType: keyboardType,
           decoration: InputDecoration(
@@ -47,24 +56,29 @@ class CustomTextField extends StatelessWidget {
             filled: filled,
             fillColor: fillColor,
             suffixIcon: suffixIcon, // أيقونة العين أو غيرها
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: filled ? Colors.transparent : AppColors.inputBorder),
+              borderSide: BorderSide(
+                color: filled ? Colors.transparent : AppColors.inputBorder,
+              ),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: filled ? Colors.transparent : AppColors.inputBorder),
+              borderSide: BorderSide(
+                color: filled ? Colors.transparent : AppColors.inputBorder,
+              ),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: const BorderSide(color: AppColors.primaryGreen),
             ),
           ),
-
         ),
       ],
     );
   }
 }
-
