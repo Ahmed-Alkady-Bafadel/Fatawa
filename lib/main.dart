@@ -1,5 +1,6 @@
 import 'package:fatawa/presentation/pages/auth/Login_page.dart';
 import 'package:fatawa/core/theme/app_colors.dart';
+import 'package:fatawa/presentation/pages/auth/loading_page.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -37,7 +38,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       themeMode: ThemeMode.light, // يمكنك تغييره لاحقاً إلى ThemeMode.system
-      home: const LoginPage(),
+      home: const LoadingPage(),
     );
 
   }

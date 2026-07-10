@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:fatawa/presentation/pages/auth/Login_page.dart';
+import 'package:fatawa/presentation/pages/auth/main_page.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 
@@ -16,11 +16,11 @@ class _LoadingPageState extends State<LoadingPage> {
     super.initState();
 
     // 💡 المحرك السحري: مؤقت زمني لمدة ثانية واحدة (1 Second) ثم الانتقال فوراً
-    Timer(const Duration(seconds: 10), () {
+    Timer(const Duration(seconds: 2), () {
       if (mounted) {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const LoginPage()),
+          MaterialPageRoute(builder: (context) => const MainPage()),
         );
       }
     });
