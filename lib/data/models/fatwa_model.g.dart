@@ -19,26 +19,35 @@ class FatwaModelAdapter extends TypeAdapter<FatwaModel> {
     return FatwaModel(
       title: fields[0] as String,
       questionSnippet: fields[1] as String,
-      date: fields[2] as String,
-      pdfUrl: fields[3] as String,
-      isAnswered: fields[4] as bool,
+      pdfUrl: fields[2] as String,
+      isAnswered: fields[3] as bool,
+      localPdfPath: fields[4] as String?,
+      localAudioPath: fields[6] as String?,
+      textAnswer: fields[7] as String?,
+      date: fields[5] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, FatwaModel obj) {
     writer
-      ..writeByte(5)
+      ..writeByte(8)
       ..writeByte(0)
       ..write(obj.title)
       ..writeByte(1)
       ..write(obj.questionSnippet)
       ..writeByte(2)
-      ..write(obj.date)
-      ..writeByte(3)
       ..write(obj.pdfUrl)
+      ..writeByte(3)
+      ..write(obj.isAnswered)
       ..writeByte(4)
-      ..write(obj.isAnswered);
+      ..write(obj.localPdfPath)
+      ..writeByte(5)
+      ..write(obj.date)
+      ..writeByte(6)
+      ..write(obj.localAudioPath)
+      ..writeByte(7)
+      ..write(obj.textAnswer);
   }
 
   @override

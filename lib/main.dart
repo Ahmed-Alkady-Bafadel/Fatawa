@@ -1,26 +1,39 @@
-import 'package:fatawa/models/fatwa_model.dart';
-import 'package:fatawa/presentation/pages/auth/Login_page.dart';
+import 'package:fatawa/core/network/dio_helper.dart';
+import 'package:fatawa/data/datasources/fatwa_local_data_source.dart';
+import 'package:fatawa/data/datasources/fatwa_remote_data_source.dart';
+import 'package:fatawa/data/models/fatwa_model.dart';
+import 'package:fatawa/data/repositories/fatwa_repository.dart';
 import 'package:fatawa/core/theme/app_colors.dart';
 import 'package:fatawa/presentation/pages/auth/loading_page.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Hive.initFlutter();
   Hive.registerAdapter(FatwaModelAdapter());
   await Hive.openBox<FatwaModel>('fatwas_box');
-  runApp(const MyApp());
+  DioHelper.init();
+
+  final localDataSource = FatwaLocalDataSource();
+  final remoteDataSource = FatwaRemoteDataSource(dio: DioHelper.dio);
+  final repository = FatwaRepository(
+    localDataSource: localDataSource,
+    remoteDataSource: remoteDataSource,
+  );
+
+  runApp(MyApp(repository: repository,));
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+  final FatwaRepository repository;
+  const MyApp({super.key, required this.repository});
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'الفتاوى',
-      // 1. تفعيل اتجاه اليمين لليسار (RTL) افتراضياً في كل التطبيق
+      // 1. تفعيل اتجاه اليمين لليسار (RTL) افتراضياً في كل التطبيقqwAAAAAAAAAA221122
       builder: (context, child) {
         return Directionality(textDirection: TextDirection.rtl, child: child!);
       },

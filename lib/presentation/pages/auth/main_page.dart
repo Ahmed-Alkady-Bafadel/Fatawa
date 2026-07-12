@@ -1,4 +1,4 @@
-import 'package:fatawa/models/fatwa_model.dart';
+import 'package:fatawa/data/models/fatwa_model.dart';
 import 'package:fatawa/widgets/fatwa_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
