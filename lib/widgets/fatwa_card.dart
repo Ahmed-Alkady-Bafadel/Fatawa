@@ -1,6 +1,7 @@
 import 'package:fatawa/data/models/fatwa_model.dart';
 import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
+import 'package:fatawa/presentation/pages/fatwa_pdf_screen.dart';
 
 class FatwaCardWidget extends StatelessWidget {
   final FatwaModel fatwa;
@@ -15,7 +16,12 @@ class FatwaCardWidget extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          // الانتقال لشاشة تفاصيل الفتوى لاحقاً
+          Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => FatwaPdfScreen(fatwa: fatwa),
+          ),
+        );
         },
         splashColor: AppColors.primaryGreen.withAlpha(26),
         highlightColor: AppColors.primaryGreen.withAlpha(13),
@@ -39,7 +45,7 @@ class FatwaCardWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      fatwa.questionSnippet ?? '',
+                      fatwa.questionSnippet ,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(

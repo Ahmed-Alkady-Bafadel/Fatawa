@@ -23,7 +23,7 @@ class FatwaRepository {
           await localDataSource.deleteFatwa(fatwa.pdfUrl);
         }
       } catch (e) {
-        continue; 
+        continue;
       }
     }
 
@@ -42,11 +42,15 @@ class FatwaRepository {
   Future<void> submitFatwaAnswerLocally(FatwaModel answeredFatwa) async {
     // نتأكد فقط أن حالة الفتوى أصبحت "مجاب عليها" للضمان
     final fatwaToSave = answeredFatwa.copyWith(isAnswered: true);
-    
+
     // حفظ في الذاكرة المحلية
     await localDataSource.updateFatwa(fatwaToSave);
-    
+
     // محاولة الرفع فوراً في الخلفية
     syncAndFetchFatwas();
+  }
+
+  Future<void> saveFatwaDraft(FatwaModel draftFatwa) async {
+    await localDataSource.updateFatwa(draftFatwa);
   }
 }

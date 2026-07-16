@@ -1,5 +1,5 @@
 import 'dart:io' show Platform;
-import 'package:fatawa/presentation/pages/auth/loading_page.dart';
+import 'package:fatawa/presentation/pages/loading_page.dart';
 import 'package:fatawa/widgets/custom_text_field.dart';
 import 'package:fatawa/widgets/primary_button.dart';
 import 'package:flutter/material.dart';

@@ -1,0 +1,831 @@
+import 'package:flutter/material.dart';
+import 'package:pdf_document/pdf_document.dart';
+
+import 'annotation_presentation.dart';
+import 'editing_color_picker.dart';
+import 'editing_controller.dart';
+import 'editing_font_controls.dart';
+import 'editing_fonts.dart';
+import 'editing_panel.dart';
+import 'editing_preferences.dart';
+import 'editing_value_field.dart';
+import 'text_prompt.dart';
+import 'line_style.dart';
+
+/// A panel showing - and editing - the selected annotation's properties.
+///
+/// With one annotation selected it shows its type and page plus whatever
+/// of these apply: color, fill, stroke width, opacity (restyled in place
+/// via [PdfEditingController.restyleSelected]), font and size for text
+/// boxes, the contents text, the author, and the position and size in
+/// page points. With several selected, the shared style controls act on
+/// the whole selection at once; with none it invites a selection.
+///
+/// The inner edge is draggable ([resizable]); the chosen width persists
+/// via [PdfEditingPreferences.propertiesPanelWidth].
+///
+/// Place it beside the viewer, typically in a [Row] next to (or instead
+/// of) the annotation list:
+///
+/// ```dart
+/// Row(children: [
+///   Expanded(child: PdfViewer(...)),
+///   PdfAnnotationPropertiesPanel(controller: editing),
+/// ])
+/// ```
+class PdfAnnotationPropertiesPanel extends StatefulWidget {
+  const PdfAnnotationPropertiesPanel({
+    super.key,
+    required this.controller,
+    this.width = 260,
+    this.side = PdfSidebarSide.right,
+    this.resizable = true,
+    this.minWidth = 200,
+    this.maxWidth = 420,
+    this.showAuthor = true,
+    this.bottomSheet = false,
+    this.onClose,
+    this.fontPicker,
+  });
+
+  final PdfEditingController controller;
+
+  /// How the font row's menu loads a custom `.ttf`/`.otf` font; null hides
+  /// the "Load font…" entry (bundled and standard fonts still show).
+  final PdfFontPicker? fontPicker;
+
+  /// The default width - a user-dragged width, persisted in
+  /// [PdfEditingPreferences.propertiesPanelWidth], wins over it.
+  final double width;
+
+  /// Which side of the viewer the panel sits on; the resize grip rides
+  /// the opposite (inner) edge.
+  final PdfSidebarSide side;
+
+  /// Whether the inner edge can be dragged to resize the panel.
+  final bool resizable;
+
+  /// Clamps for the dragged width.
+  final double minWidth;
+  final double maxWidth;
+
+  /// Whether the "Author" row is shown. With it false the selected
+  /// annotation's author can't be edited here - for hosts that set the
+  /// author programmatically and lock it.
+  final bool showAuthor;
+
+  /// Lays the panel out to fill its parent (full width, no side resize
+  /// grip) for hosting inside a bottom sheet on a small screen, rather
+  /// than as a fixed-width docked column.
+  final bool bottomSheet;
+
+  /// Closes the docked panel - the host turns its visibility preference
+  /// off. When given (and not a [bottomSheet]) a close (×) button appears
+  /// in the panel's header. Null leaves the panel with no close button (a
+  /// bottom sheet supplies its own).
+  final VoidCallback? onClose;
+
+  @override
+  State<PdfAnnotationPropertiesPanel> createState() =>
+      _PdfAnnotationPropertiesPanelState();
+}
+
+class _PdfAnnotationPropertiesPanelState
+    extends State<PdfAnnotationPropertiesPanel> {
+  final ScrollController _scroll = ScrollController();
+
+  final TextEditingController _contents = TextEditingController();
+  final TextEditingController _author = TextEditingController();
+  final TextEditingController _fieldName = TextEditingController();
+  final TextEditingController _x = TextEditingController();
+  final TextEditingController _y = TextEditingController();
+  final TextEditingController _w = TextEditingController();
+  final TextEditingController _h = TextEditingController();
+
+  /// What the text fields were last synced from: the document revision
+  /// and the primary selection slot. While it's unchanged the user owns
+  /// the field text; any revision or selection change re-syncs.
+  (PdfDocument, (int, int)?)? _syncedFor;
+
+  /// Slider values while a drag is in flight - each restyle commits one
+  /// revision, so it lands on release, and the thumb shows the dragged
+  /// value meanwhile.
+  double? _draggingStroke;
+  double? _draggingOpacity;
+  double? _draggingFontSize;
+
+  PdfEditingController get _controller => widget.controller;
+
+  PdfEditingPreferences get _preferences => _controller.preferences;
+
+  @override
+  void initState() {
+    super.initState();
+    _preferences.addListener(_onPreferences);
+  }
+
+  @override
+  void didUpdateWidget(PdfAnnotationPropertiesPanel old) {
+    super.didUpdateWidget(old);
+    if (!identical(old.controller.preferences, _preferences)) {
+      old.controller.preferences.removeListener(_onPreferences);
+      _preferences.addListener(_onPreferences);
+    }
+  }
+
+  @override
+  void dispose() {
+    _preferences.removeListener(_onPreferences);
+    _scroll.dispose();
+    _contents.dispose();
+    _author.dispose();
+    _fieldName.dispose();
+    _x.dispose();
+    _y.dispose();
+    _w.dispose();
+    _h.dispose();
+    super.dispose();
+  }
+
+  void _onPreferences() {
+    if (mounted) setState(() {});
+  }
+
+  static String _endingLabel(PdfLineEnding ending) => switch (ending) {
+        PdfLineEnding.none => 'None',
+        PdfLineEnding.square => 'Square',
+        PdfLineEnding.circle => 'Circle',
+        PdfLineEnding.diamond => 'Diamond',
+        PdfLineEnding.openArrow => 'Open arrow',
+        PdfLineEnding.closedArrow => 'Closed arrow',
+        PdfLineEnding.butt => 'Butt',
+        PdfLineEnding.rOpenArrow => 'Open arrow (rev.)',
+        PdfLineEnding.rClosedArrow => 'Closed arrow (rev.)',
+        PdfLineEnding.slash => 'Slash',
+      };
+
+  Widget _lineEndingRow({
+    required String label,
+    required Key key,
+    required PdfLineEnding value,
+    required ValueChanged<PdfLineEnding> onChanged,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(children: [
+        SizedBox(width: 92, child: Text(label)),
+        Expanded(
+          child: DropdownButton<PdfLineEnding>(
+            key: key,
+            value: value,
+            isDense: true,
+            isExpanded: true,
+            items: [
+              for (final ending in PdfLineEnding.values)
+                DropdownMenuItem(
+                  value: ending,
+                  child: Text(_endingLabel(ending),
+                      overflow: TextOverflow.ellipsis),
+                ),
+            ],
+            onChanged: (ending) {
+              if (ending != null) onChanged(ending);
+            },
+          ),
+        ),
+      ]),
+    );
+  }
+
+  /// Page points, shown without a trailing .0.
+  static String _fmt(double value) {
+    final fixed = value.toStringAsFixed(1);
+    return fixed.endsWith('.0') ? fixed.substring(0, fixed.length - 2) : fixed;
+  }
+
+  void _syncFields(PdfAnnotation? annotation) {
+    final key = (_controller.document, _controller.selectedAnnotationSlot);
+    if (_syncedFor == key) return;
+    _syncedFor = key;
+    _contents.text = annotation?.contents ?? '';
+    _author.text = annotation?.author ?? '';
+    _fieldName.text = _controller.selectedWidgetFieldName ?? '';
+    final rect = annotation?.rect;
+    _x.text = rect == null ? '' : _fmt(rect.left);
+    _y.text = rect == null ? '' : _fmt(rect.bottom);
+    _w.text = rect == null ? '' : _fmt(rect.width);
+    _h.text = rect == null ? '' : _fmt(rect.height);
+  }
+
+  void _commitContents() => _controller.setSelectedContents(_contents.text);
+
+  void _commitAuthor() => _controller.setSelectedAuthor(_author.text);
+
+  void _commitFieldName() {
+    final current = _controller.selectedWidgetFieldName;
+    final next = _fieldName.text.trim();
+    if (current == null || next.isEmpty || next == current) return;
+    if (!_controller.renameFormField(current, next)) {
+      // a clash or invalid name leaves the field unchanged - restore the
+      // text so the row keeps reflecting the real name
+      _fieldName.text = current;
+    }
+  }
+
+  void _commitGeometry() {
+    final annotation = _controller.selectedAnnotation;
+    if (annotation == null) return;
+    final rect = annotation.rect;
+    final x = double.tryParse(_x.text) ?? rect.left;
+    final y = double.tryParse(_y.text) ?? rect.bottom;
+    final w = double.tryParse(_w.text) ?? rect.width;
+    final h = double.tryParse(_h.text) ?? rect.height;
+    if ((w != rect.width || h != rect.height) &&
+        _controller.canResizeSelected &&
+        w >= 1 &&
+        h >= 1) {
+      // anchored at the bottom-left corner, like the X/Y fields say
+      _controller.resizeSelected(PdfRect(x, y, x + w, y + h));
+    } else if (x != rect.left || y != rect.bottom) {
+      _controller.moveSelected(x - rect.left, y - rect.bottom);
+    } else {
+      // unparsable input - put the real values back
+      _syncedFor = null;
+      setState(() {});
+    }
+  }
+
+  Future<void> _pickColor() async {
+    final initial =
+        _controller.selectedAnnotationStyle?.color ?? _controller.color;
+    final picked = await showPdfColorPicker(context,
+        initial: initial,
+        initialFormat: _preferences.colorPickerFormat,
+        onFormatChanged: (format) => _preferences.colorPickerFormat = format);
+    if (picked != null) _controller.restyleSelected(color: picked);
+  }
+
+  Future<void> _pickFill(Color? current) async {
+    final picked = await showPdfColorPicker(context,
+        initial: current ?? const Color(0xFFFFF59D),
+        initialFormat: _preferences.colorPickerFormat,
+        onFormatChanged: (format) => _preferences.colorPickerFormat = format);
+    if (picked != null) _controller.restyleSelected(fill: (picked,));
+  }
+
+  static int? _rgb(Color? color) =>
+      color == null ? null : color.toARGB32() & 0xFFFFFF;
+
+  Future<void> _pickTextBorder(Color? current) async {
+    final picked = await showPdfColorPicker(context,
+        initial: current ?? const Color(0xFF000000),
+        initialFormat: _preferences.colorPickerFormat,
+        onFormatChanged: (format) => _preferences.colorPickerFormat = format);
+    if (picked != null) {
+      _controller.restyleSelectedText(
+          border: (_rgb(picked),), borderWidth: _controller.strokeWidth);
+    }
+  }
+
+  Widget _section(String title) => Padding(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+        child: Text(title, style: Theme.of(context).textTheme.labelLarge),
+      );
+
+  Widget _swatchRow(String label, Color? color,
+      {required Key key,
+      required VoidCallback onTap,
+      VoidCallback? onClear,
+      String clearTooltip = 'No fill'}) {
+    final scheme = Theme.of(context).colorScheme;
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Row(children: [
+        Expanded(child: Text(label)),
+        if (onClear != null)
+          IconButton(
+            icon: const Icon(Icons.format_color_reset_outlined, size: 18),
+            tooltip: clearTooltip,
+            visualDensity: VisualDensity.compact,
+            onPressed: color == null ? null : onClear,
+          ),
+        InkWell(
+          key: key,
+          onTap: onTap,
+          child: Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: color ?? Colors.transparent,
+              border: Border.all(color: scheme.outline),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: color == null
+                ? Icon(Icons.block, size: 16, color: scheme.outline)
+                : null,
+          ),
+        ),
+      ]),
+    );
+  }
+
+  Widget _sliderRow(String label, double value,
+      {required Key key,
+      required double min,
+      required double max,
+      required ValueChanged<double> onChanged,
+      required ValueChanged<double> onChangeEnd,
+      String Function(double)? display,
+      double? Function(String)? parse}) {
+    final base = key is ValueKey ? '${key.value}' : '$key';
+    return Padding(
+      padding: const EdgeInsets.only(left: 16, right: 8),
+      child: Row(children: [
+        Text(label),
+        Expanded(
+          child: Slider(
+            key: key,
+            value: value.clamp(min, max),
+            min: min,
+            max: max,
+            onChanged: onChanged,
+            onChangeEnd: onChangeEnd,
+          ),
+        ),
+        // the value also reads back as an editable number, so it can be set
+        // exactly without nudging the slider (general rule: any slider's
+        // value is directly typeable)
+        PdfSliderValueField(
+          key: ValueKey('$base-input'),
+          value: value,
+          min: min,
+          max: max,
+          display: display ?? _fmt,
+          parse: parse,
+          onSubmit: onChangeEnd,
+        ),
+        const SizedBox(width: 8),
+      ]),
+    );
+  }
+
+  Widget _textRow(String label, TextEditingController controller,
+      {required Key key,
+      required VoidCallback onCommit,
+      bool enabled = true,
+      int maxLines = 1}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      child: Focus(
+        onFocusChange: (focused) {
+          if (!focused && enabled) onCommit();
+        },
+        child: TextField(
+          key: key,
+          controller: controller,
+          enabled: enabled,
+          maxLines: maxLines,
+          minLines: 1,
+          decoration: InputDecoration(
+            labelText: label,
+            isDense: true,
+            border: const OutlineInputBorder(),
+          ),
+          onSubmitted: (_) => onCommit(),
+        ),
+      ),
+    );
+  }
+
+  Widget _geometryField(String label, TextEditingController controller, Key key,
+      {required bool enabled}) {
+    return Expanded(
+      child: Focus(
+        onFocusChange: (focused) {
+          if (!focused && enabled) _commitGeometry();
+        },
+        child: TextField(
+          key: key,
+          controller: controller,
+          enabled: enabled,
+          keyboardType: const TextInputType.numberWithOptions(
+              decimal: true, signed: true),
+          decoration: InputDecoration(
+            labelText: label,
+            isDense: true,
+            border: const OutlineInputBorder(),
+          ),
+          onSubmitted: (_) => _commitGeometry(),
+        ),
+      ),
+    );
+  }
+
+  /// Whether every selected annotation satisfies a shared semantic
+  /// capability. The subtype matrix lives in pdf_document.
+  bool _allSelected(bool Function(PdfAnnotationBehavior) test) {
+    final slots = _controller.selectedAnnotationSlots;
+    if (slots.isEmpty) return false;
+    for (final (page, index) in slots) {
+      final annotation = _controller.annotationAt(page, index);
+      if (annotation == null || !test(annotation.behavior)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  List<Widget> _styleControls(PdfAnnotation annotation) {
+    final children = <Widget>[];
+    if (!_controller.canRestyleSelected) return children;
+    final style = _controller.selectedAnnotationStyle;
+    if (style == null) return children;
+    children.add(_section('Appearance'));
+    children.add(_swatchRow('Color', style.color,
+        key: const ValueKey('pdf-prop-color'), onTap: _pickColor));
+    if (_allSelected((behavior) => behavior.supportsFill)) {
+      final fill = annotation.behavior.style.fillColor;
+      final fillColor = fill == null ? null : Color(0xFF000000 | fill);
+      children.add(_swatchRow('Fill', fillColor,
+          key: const ValueKey('pdf-prop-fill'),
+          onTap: () => _pickFill(fillColor),
+          onClear: () => _controller.restyleSelected(fill: (null,))));
+    }
+    if (_allSelected((behavior) => behavior.supportsStrokeWidth)) {
+      children.add(_sliderRow(
+        'Stroke',
+        _draggingStroke ?? style.strokeWidth ?? _controller.strokeWidth,
+        key: const ValueKey('pdf-prop-stroke'),
+        min: 0.5,
+        max: 16,
+        onChanged: (v) => setState(() => _draggingStroke = v),
+        onChangeEnd: (v) {
+          _controller.restyleSelected(strokeWidth: v);
+          setState(() => _draggingStroke = null);
+        },
+      ));
+    }
+    if (_allSelected((behavior) => behavior.supportsLineStyle) &&
+        _controller.canSetLineStyleSelected) {
+      children.add(Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(children: [
+          const Expanded(child: Text('Line type')),
+          DropdownButton<PdfLineStyle>(
+            key: const ValueKey('pdf-prop-line-type'),
+            value: _controller.selectedLineStyle ?? PdfLineStyle.solid,
+            isDense: true,
+            items: [
+              for (final style in PdfLineStyle.values)
+                DropdownMenuItem(
+                    value: style,
+                    key: ValueKey('pdf-prop-line-type-${style.name}'),
+                    child: Text(style.label)),
+            ],
+            onChanged: (style) {
+              if (style != null) _controller.restyleSelected(lineStyle: style);
+            },
+          ),
+        ]),
+      ));
+    }
+    final endings = _controller.selectedLineEndings;
+    if (_controller.canSetLineEndings && endings != null) {
+      children
+        ..add(_lineEndingRow(
+          label: 'Line start',
+          key: const ValueKey('pdf-prop-line-start-ending'),
+          value: endings.$1,
+          onChanged: (ending) =>
+              _controller.setSelectedLineEndings(start: ending),
+        ))
+        ..add(_lineEndingRow(
+          label: 'Line end',
+          key: const ValueKey('pdf-prop-line-end-ending'),
+          value: endings.$2,
+          onChanged: (ending) =>
+              _controller.setSelectedLineEndings(end: ending),
+        ));
+    }
+    if (_allSelected((behavior) => behavior.supportsOpacity)) {
+      children.add(_sliderRow(
+        'Opacity',
+        _draggingOpacity ?? style.opacity,
+        key: const ValueKey('pdf-prop-opacity'),
+        min: 0.05,
+        max: 1,
+        display: (v) => '${(v * 100).round()}%',
+        parse: (s) {
+          final n = double.tryParse(s.replaceAll('%', '').trim());
+          return n == null ? null : n / 100;
+        },
+        onChanged: (v) => setState(() => _draggingOpacity = v),
+        onChangeEnd: (v) {
+          _controller.restyleSelected(opacity: v);
+          setState(() => _draggingOpacity = null);
+        },
+      ));
+    }
+    return children;
+  }
+
+  List<Widget> _textStyleControls(PdfAnnotation annotation) {
+    if (!_controller.canRestyleSelectedText) return const [];
+    final style = _controller.selectedTextStyle;
+    if (style == null) return const [];
+    final border = annotation.behavior.style.borderColor;
+    final borderColor = border == null ? null : Color(0xFF000000 | border);
+    return [
+      _section('Text'),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(children: [
+          const Expanded(child: Text('Font')),
+          PdfFontMenuButton(
+            buttonKey: const ValueKey('pdf-prop-font'),
+            controller: _controller,
+            fontPicker: widget.fontPicker,
+            currentFont: style.font,
+          ),
+        ]),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(children: [
+          const Expanded(child: Text('Style')),
+          FontStyleToggles(
+            keyPrefix: 'pdf-prop-font',
+            font: style.font,
+            onChanged: (font) => _controller.restyleSelectedText(font: font),
+          ),
+        ]),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(children: [
+          const Expanded(child: Text('Align')),
+          TextAlignToggles(
+            keyPrefix: 'pdf-prop-text-align',
+            align: _controller.selectedTextAlign ?? PdfTextAlign.left,
+            onChanged: (align) => _controller.restyleSelectedText(align: align),
+          ),
+        ]),
+      ),
+      _sliderRow(
+        'Size',
+        _draggingFontSize ?? style.size,
+        key: const ValueKey('pdf-prop-font-size'),
+        min: 6,
+        max: 72,
+        onChanged: (v) => setState(() => _draggingFontSize = v),
+        onChangeEnd: (v) {
+          _controller.restyleSelectedText(size: v.roundToDouble());
+          setState(() => _draggingFontSize = null);
+        },
+      ),
+      if (annotation.subtype == 'FreeText')
+        _swatchRow('Outline', borderColor,
+            key: const ValueKey('pdf-prop-text-border'),
+            onTap: () => _pickTextBorder(borderColor),
+            onClear: () => _controller.restyleSelectedText(border: (null,)),
+            clearTooltip: 'No outline'),
+    ];
+  }
+
+  /// Text styling for a selected form text field (font, style, alignment,
+  /// auto-size, size, multiline, colour) - regenerated through
+  /// [PdfEditingController.setFormFieldStyle].
+  List<Widget> _formFieldControls() {
+    final name = _controller.selectedFormFieldName;
+    final style = _controller.selectedFormFieldStyle;
+    if (name == null || style == null) return const [];
+    return [
+      _section('Text'),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(children: [
+          const Expanded(child: Text('Font')),
+          PdfFontMenuButton(
+            buttonKey: const ValueKey('pdf-prop-form-font'),
+            controller: _controller,
+            fontPicker: widget.fontPicker,
+            currentFont: style.font,
+          ),
+        ]),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(children: [
+          const Expanded(child: Text('Style')),
+          FontStyleToggles(
+            keyPrefix: 'pdf-prop-form-font',
+            font: style.font,
+            onChanged: (font) =>
+                _controller.setFormFieldStyle(name, font: font),
+          ),
+        ]),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(children: [
+          const Expanded(child: Text('Align')),
+          TextAlignToggles(
+            keyPrefix: 'pdf-prop-form-align',
+            align: style.align,
+            onChanged: (align) =>
+                _controller.setFormFieldStyle(name, align: align),
+          ),
+        ]),
+      ),
+      SwitchListTile(
+        key: const ValueKey('pdf-prop-form-autosize'),
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        title: const Text('Auto-size'),
+        value: style.autoSize,
+        onChanged: (v) => _controller.setFormFieldStyle(name,
+            autoSize: v, fontSize: v ? null : style.size),
+      ),
+      if (!style.autoSize)
+        _sliderRow(
+          'Size',
+          _draggingFontSize ?? style.size,
+          key: const ValueKey('pdf-prop-form-size'),
+          min: 6,
+          max: 72,
+          onChanged: (v) => setState(() => _draggingFontSize = v),
+          onChangeEnd: (v) {
+            _controller.setFormFieldStyle(name, fontSize: v.roundToDouble());
+            setState(() => _draggingFontSize = null);
+          },
+        ),
+      SwitchListTile(
+        key: const ValueKey('pdf-prop-form-multiline'),
+        dense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
+        title: const Text('Multiline'),
+        value: style.multiline,
+        onChanged: (v) => _controller.setFormFieldStyle(name, multiline: v),
+      ),
+      _swatchRow('Color', style.color,
+          key: const ValueKey('pdf-prop-form-color'),
+          onTap: () => _pickFormColor(name, style.color)),
+    ];
+  }
+
+  Future<void> _pickFormColor(String name, Color current) async {
+    final picked = await showPdfColorPicker(context,
+        initial: current,
+        initialFormat: _preferences.colorPickerFormat,
+        onFormatChanged: (format) => _preferences.colorPickerFormat = format);
+    if (picked != null) {
+      _controller.setFormFieldStyle(name, color: picked.toARGB32() & 0xFFFFFF);
+    }
+  }
+
+  List<Widget> _buildSingle(PdfAnnotation annotation) {
+    final slot = _controller.selectedAnnotationSlot!;
+    return [
+      ListTile(
+        leading: Icon(annotation.isCallout
+            ? Icons.chat_bubble_outline
+            : pdfAnnotationIcon(annotation.subtype)),
+        title: Text(annotation.isCallout
+            ? 'Callout'
+            : pdfAnnotationLabel(annotation.subtype)),
+        subtitle: Text('Page ${slot.$1 + 1}'),
+      ),
+      ..._styleControls(annotation),
+      ..._textStyleControls(annotation),
+      // a form widget's /T is its field name, not an author, and /V (not
+      // /Contents) is its value - so widgets get a "Field name" row instead
+      // of the generic Contents/Author section
+      if (annotation.subtype == 'Widget') ...[
+        if (_controller.selectedWidgetFieldName != null) ...[
+          _section('Form field'),
+          _textRow('Field name', _fieldName,
+              key: const ValueKey('pdf-prop-field-name'),
+              onCommit: _commitFieldName),
+        ],
+        ..._formFieldControls(),
+      ] else ...[
+        ..._formFieldControls(),
+        _section('Content'),
+        _textRow('Contents', _contents,
+            key: const ValueKey('pdf-prop-contents'),
+            onCommit: _commitContents,
+            maxLines: 4),
+        if (widget.showAuthor)
+          _textRow('Author', _author,
+              key: const ValueKey('pdf-prop-author'), onCommit: _commitAuthor),
+      ],
+      _section('Position & size (pt)'),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(children: [
+          _geometryField('X', _x, const ValueKey('pdf-prop-x'), enabled: true),
+          const SizedBox(width: 8),
+          _geometryField('Y', _y, const ValueKey('pdf-prop-y'), enabled: true),
+        ]),
+      ),
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        child: Row(children: [
+          _geometryField('W', _w, const ValueKey('pdf-prop-w'),
+              enabled: _controller.canResizeSelected),
+          const SizedBox(width: 8),
+          _geometryField('H', _h, const ValueKey('pdf-prop-h'),
+              enabled: _controller.canResizeSelected),
+        ]),
+      ),
+      const SizedBox(height: 16),
+    ];
+  }
+
+  List<Widget> _buildMulti(PdfAnnotation primary, int count) {
+    return [
+      ListTile(
+        leading: const Icon(Icons.select_all),
+        title: Text('$count annotations'),
+        subtitle: const Text('Style edits apply to all'),
+      ),
+      ..._styleControls(primary),
+      if (widget.showAuthor) ...[
+        _section('Content'),
+        _textRow('Author', _author,
+            key: const ValueKey('pdf-prop-author'), onCommit: _commitAuthor),
+      ],
+      const SizedBox(height: 16),
+    ];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return PdfSidebarPanelFrame(
+      width: widget.width,
+      minWidth: widget.minWidth,
+      maxWidth: widget.maxWidth,
+      persistedWidth: _preferences.propertiesPanelWidth,
+      onPersistWidth: (width) => _preferences.propertiesPanelWidth = width,
+      side: widget.side,
+      resizable: widget.resizable,
+      bottomSheet: widget.bottomSheet,
+      gripKey: const ValueKey('pdf-properties-resize-grip'),
+      onClose: widget.onClose,
+      builder: (context, geometry) => Material(
+        color: Theme.of(context).colorScheme.surfaceContainerLow,
+        child: Column(children: [
+          if (geometry.closeButton(
+            key: const ValueKey('pdf-properties-panel-close'),
+          )
+              case final closeButton?)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 4, 0),
+              child: Row(children: [
+                Expanded(
+                  child: Text('Properties',
+                      style: Theme.of(context).textTheme.titleSmall),
+                ),
+                closeButton,
+              ]),
+            ),
+          Expanded(
+            child: ListenableBuilder(
+              listenable: _controller,
+              builder: (context, _) {
+                final annotation = _controller.selectedAnnotation;
+                _syncFields(annotation);
+                if (annotation == null) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text('Select an annotation to see its properties',
+                          textAlign: TextAlign.center),
+                    ),
+                  );
+                }
+                final count = _controller.selectedAnnotationSlots.length;
+                final children = count == 1
+                    ? _buildSingle(annotation)
+                    : _buildMulti(annotation, count);
+                return geometry.withScrollbar(
+                  scroll: _scroll,
+                  thumbKey: const ValueKey('pdf-properties-scrollbar-thumb'),
+                  child: ScrollConfiguration(
+                    behavior: ScrollConfiguration.of(context)
+                        .copyWith(scrollbars: false),
+                    child: ListView(
+                        controller: _scroll,
+                        padding:
+                            EdgeInsets.only(right: geometry.scrollbarClearance),
+                        children: children),
+                  ),
+                );
+              },
+            ),
+          ),
+        ]),
+      ),
+    );
+  }
+}
