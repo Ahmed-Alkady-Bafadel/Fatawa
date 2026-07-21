@@ -8,7 +8,7 @@ import 'package:fatawa/core/theme/app_colors.dart';
 import 'package:fatawa/presentation/cubit/fatwa_cubit.dart';
 import 'package:fatawa/presentation/cubit/fatwa_loading_cubit.dart';
 import 'package:fatawa/presentation/cubit/theme_cubit.dart';
-import 'package:fatawa/presentation/pages/test_page.dart';
+import 'package:fatawa/presentation/pages/loading_page.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -97,7 +97,7 @@ class MyApp extends StatelessWidget {
                   bodyMedium: TextStyle(color: Colors.white70),
                 ),
               ),
-              home: const TestScreen(),
+              home: const LoadingPage(),
             );
           },
         ),

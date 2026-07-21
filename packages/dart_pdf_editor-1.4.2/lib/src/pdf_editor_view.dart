@@ -1,3 +1,4 @@
+import 'package:dart_pdf_editor/src/editing/localization.dart';
 import 'package:flutter/foundation.dart' show defaultTargetPlatform, mapEquals;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -710,7 +711,7 @@ class _PdfEditorViewState extends State<PdfEditorView> {
                   if (showBookmarksPanel)
                     PdfPanelBottomSheet(
                       key: const ValueKey('pdf-shell-bookmarks-sheet'),
-                      title: 'Bookmarks',
+                      title:  tr('Bookmarks', 'إشارات مرجعية'),
                       closeKey:
                           const ValueKey('pdf-shell-bookmarks-sheet-close'),
                       onClose: () => prefs.showBookmarkSidebar = false,
@@ -774,7 +775,7 @@ class _PdfEditorViewState extends State<PdfEditorView> {
           final viewOptionsControl = PdfShellControlItem(
             key: const ValueKey('pdf-shell-view-options'),
             icon: Icons.display_settings_outlined,
-            label: 'Settings',
+            label: tr('Settings', 'الإعدادات'),
             onPressed: () {
               showPdfShellViewOptionsSheet(
                 context,
@@ -797,7 +798,7 @@ class _PdfEditorViewState extends State<PdfEditorView> {
               PdfShellPanelItem(
                 key: const ValueKey('pdf-shell-search-results-toggle'),
                 icon: Icons.manage_search,
-                tooltip: 'Search results',
+                tooltip: tr('Search results', 'نتائج البحث'),
                 selected: prefs.showSearchResultsPanel,
                 onPressed: () => prefs.showSearchResultsPanel =
                     !prefs.showSearchResultsPanel,
@@ -806,7 +807,7 @@ class _PdfEditorViewState extends State<PdfEditorView> {
               PdfShellPanelItem(
                 key: const ValueKey('pdf-shell-thumbnails-toggle'),
                 icon: Icons.grid_view,
-                tooltip: 'Pages',
+                tooltip: tr('Pages', 'الصفحات'),
                 selected: showThumbnails,
                 onPressed: () => prefs.showThumbnailSidebar = !showThumbnails,
               ),
@@ -814,7 +815,7 @@ class _PdfEditorViewState extends State<PdfEditorView> {
               PdfShellPanelItem(
                 key: const ValueKey('pdf-shell-bookmarks-toggle'),
                 icon: Icons.bookmarks_outlined,
-                tooltip: 'Bookmarks',
+                tooltip: tr('Bookmarks', 'إشارات مرجعية'),
                 selected: prefs.showBookmarkSidebar,
                 onPressed: () =>
                     prefs.showBookmarkSidebar = !prefs.showBookmarkSidebar,
@@ -823,7 +824,7 @@ class _PdfEditorViewState extends State<PdfEditorView> {
               PdfShellPanelItem(
                 key: const ValueKey('pdf-shell-annotations-toggle'),
                 icon: Icons.list_alt,
-                tooltip: 'Annotations',
+                tooltip: tr('Annotations', 'تعليقات'),
                 selected: prefs.showAnnotationSidebar,
                 onPressed: () =>
                     prefs.showAnnotationSidebar = !prefs.showAnnotationSidebar,
@@ -832,7 +833,7 @@ class _PdfEditorViewState extends State<PdfEditorView> {
               PdfShellPanelItem(
                 key: const ValueKey('pdf-shell-properties-toggle'),
                 icon: Icons.tune,
-                tooltip: 'Properties',
+                tooltip: tr('Properties', 'خصائص'),
                 selected: prefs.showPropertiesPanel,
                 onPressed: () =>
                     prefs.showPropertiesPanel = !prefs.showPropertiesPanel,
@@ -903,7 +904,7 @@ class _PdfEditorViewState extends State<PdfEditorView> {
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                       ),
                       icon: const Icon(Icons.save_alt, size: 18),
-                      label: const Text('Save'),
+                      label: Text(tr('Save', 'حفظ')),
                       onPressed: _canSave ? _save : null,
                     ),
                 ],
@@ -924,7 +925,7 @@ class _PdfEditorViewState extends State<PdfEditorView> {
                     PdfShellControlItem(
                       key: const ValueKey('pdf-shell-save'),
                       icon: Icons.save_alt,
-                      label: 'Save',
+                      label: tr('Save', 'حفظ'),
                       enabled: _canSave,
                       onPressed: _save,
                     ),
@@ -1008,8 +1009,7 @@ class _PdfEditorViewState extends State<PdfEditorView> {
       body = PdfViewerTheme(data: widget.viewerTheme!, child: body);
     }
     final bindings = <ShortcutActivator, VoidCallback>{
-      ..._shell.searchShortcuts(
-          enabled: features.headerBar && features.search),
+      ..._shell.searchShortcuts(enabled: features.headerBar && features.search),
       // ⌘S / Ctrl+S saves through the host's [onSave], the same path the
       // toolbar's save button takes. ⌘⇧S / Ctrl+Shift+S invokes the
       // host's Save As path when one is provided.

@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:dart_pdf_editor/src/editing/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -269,7 +270,7 @@ class _PdfColorPickerState extends State<PdfColorPicker> {
               height: 38,
               child: PopupMenuButton<PdfColorFormat>(
                 key: const ValueKey('pdf-color-format'),
-                tooltip: 'Color format',
+                tooltip: tr('Color format', 'صيغة اللون'),
                 initialValue: _format,
                 onSelected: _switchFormat,
                 itemBuilder: (context) => [
@@ -444,7 +445,7 @@ Future<Color?> showPdfColorPicker(
   return showDialog<Color>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Color'),
+      title: Text(tr('Color', 'لون')),
       content: PdfColorPicker(
         color: initial,
         onChanged: (color) => current = color,
@@ -454,11 +455,11 @@ Future<Color?> showPdfColorPicker(
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(tr('Cancel', 'إلغاء')),
         ),
         FilledButton(
           onPressed: () => Navigator.of(context).pop(current),
-          child: const Text('OK'),
+          child: Text(tr('OK', 'موافق')),
         ),
       ],
     ),

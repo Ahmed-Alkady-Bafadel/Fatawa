@@ -62,12 +62,15 @@ class FatwaCardWidget extends StatelessWidget {
               const SizedBox(width: 12),
 
               // القسم الأيسر: تاريخ وصول الفتوى
-              Text(
-                fatwa.date,
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w500,
-                  color: isDark ? Colors.grey[500] : Colors.grey[600],
+              Padding(
+                padding: const EdgeInsets.only(top: 16),
+                child: Text(
+                  fatwa.date,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.grey[500] : Colors.grey[600],
+                  ),
                 ),
               ),
             ],

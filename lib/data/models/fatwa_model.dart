@@ -17,7 +17,7 @@ class FatwaModel extends HiveObject {
   @HiveField(5)
   final String date;
   @HiveField(6)
-  final String? localAudioPath; // إجابة عبر تسجيل صوتي
+  String? localAudioPath; // إجابة عبر تسجيل صوتي
   @HiveField(7)
   final String? textAnswer; // إجابة نصية
   FatwaModel({

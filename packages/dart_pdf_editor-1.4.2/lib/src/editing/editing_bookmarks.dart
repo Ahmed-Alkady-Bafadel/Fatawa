@@ -1,3 +1,4 @@
+import 'package:dart_pdf_editor/src/editing/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:pdf_document/pdf_document.dart';
@@ -143,7 +144,7 @@ class _PdfBookmarkSidebarState extends State<PdfBookmarkSidebar> {
       child: Row(children: [
         if (showTitle)
           Expanded(
-            child: Text('Bookmarks',
+            child: Text(tr('Bookmarks', 'إشارات مرجعية'),
                 style: Theme.of(context).textTheme.titleSmall,
                 overflow: TextOverflow.ellipsis),
           )
@@ -152,7 +153,7 @@ class _PdfBookmarkSidebarState extends State<PdfBookmarkSidebar> {
         if (widget.editable)
           IconButton(
             key: const ValueKey('pdf-bookmark-add'),
-            tooltip: 'Add bookmark',
+            tooltip: tr('Add bookmark', 'إضافة إشارة مرجعية'),
             visualDensity: VisualDensity.compact,
             icon: const Icon(Icons.add),
             onPressed: () => _addBookmark(context),
@@ -173,7 +174,7 @@ class _PdfBookmarkSidebarState extends State<PdfBookmarkSidebar> {
             Icon(Icons.bookmarks_outlined,
                 size: 34, color: scheme.onSurfaceVariant),
             const SizedBox(height: 10),
-            Text('No bookmarks',
+            Text(tr('No bookmarks', 'لا توجد إشارات مرجعية'),
                 style: Theme.of(context)
                     .textTheme
                     .bodyMedium
@@ -184,7 +185,7 @@ class _PdfBookmarkSidebarState extends State<PdfBookmarkSidebar> {
                 key: const ValueKey('pdf-bookmark-empty-add'),
                 onPressed: () => _addBookmark(context),
                 icon: const Icon(Icons.add),
-                label: const Text('Add bookmark'),
+                label: Text(tr('Add bookmark', 'إضافة إشارة مرجعية')),
               ),
             ],
           ],
@@ -210,8 +211,9 @@ class _PdfBookmarkSidebarState extends State<PdfBookmarkSidebar> {
           );
     final scheme = Theme.of(context).colorScheme;
     final pageLabel = destination == null
-        ? 'No destination'
-        : 'Page ${destination.pageIndex + 1}';
+        ? tr('No destination', 'لا يوجد مرجع')
+        : tr('Page ${destination.pageIndex + 1}',
+            'صفحة ${destination.pageIndex + 1}');
     final actionsVisible =
         !pdfPanelControlsRevealOnHover() || _hoveredPath == pathKey;
     final titleStyle = Theme.of(context).textTheme.bodyMedium?.copyWith(
@@ -450,7 +452,9 @@ class _BookmarkDialogState extends State<_BookmarkDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-        title: Text(widget.editing ? 'Edit bookmark' : 'Add bookmark'),
+        title: Text(widget.editing
+            ? tr('Edit bookmark', 'تحرير إشارة مرجعية')
+            : tr('Add bookmark', 'إضافة إشارة مرجعية')),
         content: SizedBox(
           width: 320,
           child: Column(
@@ -460,9 +464,9 @@ class _BookmarkDialogState extends State<_BookmarkDialog> {
                 key: const ValueKey('pdf-bookmark-title'),
                 controller: _title,
                 autofocus: true,
-                decoration: const InputDecoration(
-                  labelText: 'Title',
-                  border: OutlineInputBorder(),
+                decoration: InputDecoration(
+                  labelText: tr('Title', 'عنوان'),
+                  border: const OutlineInputBorder(),
                 ),
                 textInputAction: TextInputAction.next,
               ),
@@ -471,7 +475,7 @@ class _BookmarkDialogState extends State<_BookmarkDialog> {
                 key: const ValueKey('pdf-bookmark-page'),
                 controller: _page,
                 decoration: InputDecoration(
-                  labelText: 'Page',
+                  labelText: tr('Page', 'صفحة'),
                   helperText: '1-${widget.pageCount}',
                   border: const OutlineInputBorder(),
                 ),
@@ -481,7 +485,7 @@ class _BookmarkDialogState extends State<_BookmarkDialog> {
               CheckboxListTile(
                 key: const ValueKey('pdf-bookmark-open'),
                 contentPadding: EdgeInsets.zero,
-                title: const Text('Expanded by default'),
+                title: Text(tr('Expanded by default', 'توسيعه بشكل افتراضي')),
                 value: _open,
                 onChanged: (value) => setState(() => _open = value ?? _open),
               ),
@@ -491,12 +495,12 @@ class _BookmarkDialogState extends State<_BookmarkDialog> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: Text(tr('Cancel', 'إلغاء')),
           ),
           FilledButton(
             key: const ValueKey('pdf-bookmark-save'),
             onPressed: _save,
-            child: const Text('Save'),
+            child: Text(tr('Save', 'حفظ')),
           ),
         ],
       );

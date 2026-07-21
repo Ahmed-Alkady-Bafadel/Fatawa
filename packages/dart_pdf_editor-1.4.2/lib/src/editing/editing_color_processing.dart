@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dart_pdf_editor/src/editing/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 
@@ -251,7 +252,7 @@ class _ColorProcessingDialogState extends State<_ColorProcessingDialog> {
     return PopScope(
       canPop: !_applying,
       child: AlertDialog(
-        title: const Text('Color processing'),
+        title: Text(tr('Color processing', 'معالجة الألوان')),
         content: SizedBox(
           width: 360,
           child: SingleChildScrollView(
@@ -261,7 +262,7 @@ class _ColorProcessingDialogState extends State<_ColorProcessingDialog> {
               children: [
                 _ColorRow(
                   key: const ValueKey('pdf-color-process-find'),
-                  label: 'Find',
+                  label: tr('Find', 'بحث'),
                   color: _find,
                   valueText: _findValueText,
                   pickerKey: const ValueKey('pdf-color-process-find-picker'),
@@ -280,7 +281,7 @@ class _ColorProcessingDialogState extends State<_ColorProcessingDialog> {
                 const SizedBox(height: 8),
                 _ColorRow(
                   key: const ValueKey('pdf-color-process-replace'),
-                  label: 'Replace',
+                  label: tr('Replace', 'استبدال'),
                   color: _replace,
                   transparent: _replaceTransparent,
                   enabled: !_replaceTransparent && !_applying,
@@ -294,14 +295,15 @@ class _ColorProcessingDialogState extends State<_ColorProcessingDialog> {
                       ? null
                       : (value) =>
                           setState(() => _replaceTransparent = value ?? false),
-                  title: const Text('Replace with transparent'),
+                  title: Text(
+                      tr('Replace with transparent', 'استبدل باللون الشفاف')),
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
                 const SizedBox(height: 18),
                 Row(
                   children: [
-                    const Expanded(child: Text('Tolerance')),
+                    Expanded(child: Text(tr('Tolerance', 'السماحية'))),
                     Text('$_tolerance'),
                   ],
                 ),
@@ -330,7 +332,8 @@ class _ColorProcessingDialogState extends State<_ColorProcessingDialog> {
                         key: const ValueKey('pdf-color-process-selected-pages'),
                         value: true,
                         enabled: selectedCount > 0 && !_applying,
-                        title: Text('Selected pages ($selectedCount)'),
+                        title: Text(tr('Selected pages ($selectedCount)',
+                            'الصفحات المحددة ($selectedCount)')),
                         dense: true,
                         contentPadding: EdgeInsets.zero,
                       ),
@@ -338,7 +341,7 @@ class _ColorProcessingDialogState extends State<_ColorProcessingDialog> {
                         key: const ValueKey('pdf-color-process-whole-document'),
                         value: false,
                         enabled: !_applying,
-                        title: const Text('Whole document'),
+                        title: Text(tr('Whole document', 'المستند بالكامل')),
                         dense: true,
                         contentPadding: EdgeInsets.zero,
                       ),
@@ -351,7 +354,7 @@ class _ColorProcessingDialogState extends State<_ColorProcessingDialog> {
                   value: _fill,
                   onChanged:
                       _applying ? null : (value) => _setFill(value ?? false),
-                  title: const Text('Fill colors'),
+                  title: Text(tr('Fill colors', 'ألوان التعبئة')),
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -360,7 +363,7 @@ class _ColorProcessingDialogState extends State<_ColorProcessingDialog> {
                   value: _stroke,
                   onChanged:
                       _applying ? null : (value) => _setStroke(value ?? false),
-                  title: const Text('Stroke colors'),
+                  title: Text(tr('Stroke colors', 'ألوان الحدود')),
                   dense: true,
                   contentPadding: EdgeInsets.zero,
                 ),
@@ -371,7 +374,7 @@ class _ColorProcessingDialogState extends State<_ColorProcessingDialog> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Applying color changes…',
+                    tr('Applying color changes…', 'تطبيق تغييرات اللون'),
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -387,7 +390,7 @@ class _ColorProcessingDialogState extends State<_ColorProcessingDialog> {
           FilledButton(
             key: const ValueKey('pdf-color-process-apply'),
             onPressed: canApply ? () => unawaited(_apply()) : null,
-            child: const Text('Apply'),
+            child: Text(tr('Apply', 'تطبيق')),
           ),
         ],
       ),
@@ -470,7 +473,8 @@ class _DocumentColors extends StatelessWidget {
     final theme = Theme.of(context);
     if (colors.isEmpty && !loading) {
       return Text(
-        'No page-content colors found',
+        tr('No page-content colors found',
+            'لم يتم العثور على الألوان في محتوى الصحفة'),
         style: theme.textTheme.bodySmall,
       );
     }
@@ -479,12 +483,16 @@ class _DocumentColors extends StatelessWidget {
       children: [
         Row(
           children: [
-            Text('Document colors', style: theme.textTheme.labelLarge),
+            Text(tr('Document colors', 'ألوان المستند'),
+                style: theme.textTheme.labelLarge),
             if (loading) ...[
               const SizedBox(width: 10),
               Flexible(
                 child: Text(
-                  total <= 0 ? 'Scanning…' : 'Scanning $progress / $total',
+                  total <= 0
+                      ? tr('Scanning…', 'جار الفحص...')
+                      : tr('Scanning $progress / $total',
+                          'جار الفحص $progress / $total'),
                   key: const ValueKey('pdf-color-process-scan-progress'),
                   overflow: TextOverflow.ellipsis,
                   style: theme.textTheme.bodySmall,
@@ -502,7 +510,8 @@ class _DocumentColors extends StatelessWidget {
         ],
         const SizedBox(height: 8),
         if (colors.isEmpty)
-          Text('No colors found yet', style: theme.textTheme.bodySmall)
+          Text(tr('No colors found yet', 'لم يتم العثور على ألوان بعد'),
+              style: theme.textTheme.bodySmall)
         else
           Wrap(
             key: const ValueKey('pdf-color-process-document-colors'),

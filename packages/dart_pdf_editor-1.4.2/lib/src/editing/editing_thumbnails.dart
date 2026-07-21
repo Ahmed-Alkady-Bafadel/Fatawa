@@ -3,6 +3,7 @@ import 'dart:developer' show TimelineTask;
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
+import 'package:dart_pdf_editor/src/editing/localization.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -515,7 +516,7 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
                                       children: [
                                         Expanded(
                                           child: Text(
-                                            'Pages',
+                                            tr('Pages', 'صفحات'),
                                             style: Theme.of(context)
                                                 .textTheme
                                                 .labelMedium,
@@ -598,7 +599,7 @@ class _PdfThumbnailSidebarState extends State<PdfThumbnailSidebar> {
                         child: TextButton.icon(
                           key: const ValueKey('pdf-thumbnail-add-page'),
                           icon: const Icon(Icons.add, size: 16),
-                          label: const Text('Add page'),
+                          label: Text(tr('Add page', 'إضافة صحفة')),
                           style: TextButton.styleFrom(
                             visualDensity: VisualDensity.compact,
                             textStyle: Theme.of(context).textTheme.labelMedium,
@@ -838,7 +839,7 @@ class _PageActionsButton extends StatelessWidget {
     final canExport = onExportPages != null;
     return PopupMenuButton<_PageAction>(
       key: const ValueKey('pdf-thumbnail-page-actions'),
-      tooltip: 'Page actions',
+      tooltip: tr('Page actions', 'إجراءات الصفحة '),
       icon: const Icon(Icons.file_copy_outlined, size: 18),
       style: const ButtonStyle(visualDensity: VisualDensity.compact),
       onSelected: (action) {
@@ -1299,7 +1300,7 @@ class _PdfThumbnailViewState extends State<PdfThumbnailView> {
                           child: TextButton.icon(
                             key: const ValueKey('pdf-thumbnail-view-add-page'),
                             icon: const Icon(Icons.add, size: 18),
-                            label: const Text('Add page'),
+                            label: Text(tr('Add page', 'إضافة صحفة')),
                             onPressed: () => controller.addBlankPage(),
                           ),
                         ),
@@ -1464,7 +1465,7 @@ class _GridPageCellState extends State<_GridPageCell> {
 
   Widget _draggable(Widget tile) {
     final feedback = _DragFeedback(
-      label: 'Page ${widget.pageIndex + 1}',
+      label: tr('Page ${widget.pageIndex + 1}', 'صفحة ${widget.pageIndex + 1}'),
       width: widget.tileWidth,
     );
     // dim the page being dragged in place, leaving a gap-marker
@@ -1803,7 +1804,9 @@ class _PageTileState extends State<_PageTile> {
                   Flexible(
                     // the label echoes the selection so the cue carries into
                     // the footer row, below the framed thumbnail
-                    child: Text('Page ${pageIndex + 1}',
+                    child: Text(
+                        tr('Page ${widget.pageIndex + 1}',
+                            'صفحة ${widget.pageIndex + 1}'),
                         overflow: TextOverflow.ellipsis,
                         style:
                             Theme.of(context).textTheme.labelMedium?.copyWith(

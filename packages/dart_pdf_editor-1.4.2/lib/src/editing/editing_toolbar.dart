@@ -293,96 +293,117 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
 
   /// The seven dock groups, in order. Filtered by [PdfEditingToolbar.tools]
   /// and [PdfEditingToolbar.showMarkup] before display.
-  static const _groups = <_ToolGroup>[
+  static List<_ToolGroup> _groups = <_ToolGroup>[
     _ToolGroup(
         'select',
-        'تحديد',
+        pdfStrings.select,
         Icons.near_me,
         [
-          _GroupTool.tool(PdfEditTool.select, Icons.near_me, 'تحديد'),
+          _GroupTool.tool(PdfEditTool.select, Icons.near_me, pdfStrings.select),
         ],
         defaultTool: PdfEditTool.select),
-    _ToolGroup('markup', 'تعليقات', Icons.edit_note, [
+    _ToolGroup('markup', pdfStrings.markup, Icons.edit_note, [
       _GroupTool.markup(
-          PdfMarkupKind.highlight, Icons.border_color, 'تمييز النص'),
+          PdfMarkupKind.highlight, Icons.border_color, pdfStrings.highlight),
+      _GroupTool.markup(PdfMarkupKind.underline, Icons.format_underlined,
+          pdfStrings.underline),
+      _GroupTool.markup(PdfMarkupKind.strikeOut, Icons.format_strikethrough,
+          pdfStrings.strikeOut),
       _GroupTool.markup(
-          PdfMarkupKind.underline, Icons.format_underlined, 'خط تحت النص'),
-      _GroupTool.markup(
-          PdfMarkupKind.strikeOut, Icons.format_strikethrough, 'خط وصط النص'),
-      _GroupTool.markup(PdfMarkupKind.squiggly, Icons.gesture, 'خطين تحت النص'),
+          PdfMarkupKind.squiggly, Icons.gesture, pdfStrings.squiggly),
     ]),
     _ToolGroup(
         'draw',
-        'رسم',
+        pdfStrings.draw,
         Icons.draw,
         [
-          _GroupTool.tool(PdfEditTool.ink, Icons.draw, 'رسم'),
-          _GroupTool.tool(PdfEditTool.highlight, Icons.border_color,
-              'Highlight - draw freehand'),
+          _GroupTool.tool(PdfEditTool.ink, Icons.draw, pdfStrings.draw),
           _GroupTool.tool(
-              PdfEditTool.eraser, Icons.auto_fix_normal, 'Erase ink strokes'),
+              PdfEditTool.highlight, Icons.border_color, pdfStrings.highlight),
+          _GroupTool.tool(
+              PdfEditTool.eraser, Icons.auto_fix_normal, pdfStrings.eraseInk),
         ],
         defaultTool: PdfEditTool.ink),
     _ToolGroup(
         'shapes',
-        'Shapes',
+        pdfStrings.shapes,
         Icons.rectangle_outlined,
         [
+          _GroupTool.tool(PdfEditTool.rectangle, Icons.rectangle_outlined,
+              pdfStrings.rectangle),
           _GroupTool.tool(
-              PdfEditTool.rectangle, Icons.rectangle_outlined, 'Rectangle'),
+              PdfEditTool.ellipse, Icons.circle_outlined, pdfStrings.ellipse),
           _GroupTool.tool(
-              PdfEditTool.ellipse, Icons.circle_outlined, 'Ellipse'),
-          _GroupTool.tool(PdfEditTool.line, Icons.horizontal_rule, 'Line'),
-          _GroupTool.tool(PdfEditTool.arrow, Icons.arrow_right_alt, 'Arrow'),
-          _GroupTool.tool(PdfEditTool.polyline, Icons.timeline, 'Polyline'),
-          _GroupTool.tool(PdfEditTool.polygon, Icons.change_history, 'Polygon'),
+              PdfEditTool.line, Icons.horizontal_rule, pdfStrings.line),
           _GroupTool.tool(
-              PdfEditTool.cloudPolygon, Icons.cloud_outlined, 'Cloud polygon'),
+              PdfEditTool.arrow, Icons.arrow_right_alt, pdfStrings.arrow),
+          _GroupTool.tool(
+              PdfEditTool.polyline, Icons.timeline, pdfStrings.polyline),
+          _GroupTool.tool(
+              PdfEditTool.polygon, Icons.change_history, pdfStrings.polygon),
+          _GroupTool.tool(PdfEditTool.cloudPolygon, Icons.cloud_outlined,
+              pdfStrings.cloudPolygon),
         ],
         defaultTool: PdfEditTool.rectangle),
     _ToolGroup(
         'insert',
-        'Insert',
+        pdfStrings.insert,
         Icons.text_fields,
         [
-          _GroupTool.tool(PdfEditTool.freeText, Icons.text_fields, 'Text box'),
-          _GroupTool.tool(PdfEditTool.callout, Icons.chat_bubble_outline,
-              'Callout - drag from the point to where the box goes'),
           _GroupTool.tool(
-              PdfEditTool.note, Icons.sticky_note_2_outlined, 'Note'),
-          _GroupTool.tool(PdfEditTool.stamp, Icons.approval, 'Stamp'),
-          _GroupTool.tool(PdfEditTool.count, Icons.task_alt,
-              'Count - tap to drop check-marks and tally them'),
-          _GroupTool.tool(PdfEditTool.image, Icons.image_outlined,
-              'Image - tap to place, or drag out a box'),
-          _GroupTool.tool(PdfEditTool.signature, Icons.history_edu,
-              'Signature - tap a page to place it'),
+              PdfEditTool.freeText, Icons.text_fields, pdfStrings.textBox),
+          _GroupTool.tool(PdfEditTool.callout, Icons.chat_bubble_outline,
+              pdfStrings.callout),
+          _GroupTool.tool(
+              PdfEditTool.note, Icons.sticky_note_2_outlined, pdfStrings.note),
+          _GroupTool.tool(PdfEditTool.stamp, Icons.approval, pdfStrings.stamp),
+          _GroupTool.tool(PdfEditTool.count, Icons.task_alt, pdfStrings.count),
+          _GroupTool.tool(
+              PdfEditTool.image, Icons.image_outlined, pdfStrings.image),
+          _GroupTool.tool(
+              PdfEditTool.signature, Icons.history_edu, pdfStrings.signature),
         ],
         defaultTool: PdfEditTool.freeText),
-    _ToolGroup('measure', 'Measure', Icons.straighten, [
-      _GroupTool.tool(
-          PdfEditTool.measureDistance, Icons.straighten, 'Measure distance'),
-      _GroupTool.tool(
-          PdfEditTool.measurePerimeter, Icons.timeline, 'Measure perimeter'),
-      _GroupTool.tool(PdfEditTool.measureArea, Icons.crop_din, 'Measure area'),
+    _ToolGroup('measure', pdfStrings.measure, Icons.straighten, [
+      _GroupTool.tool(PdfEditTool.measureDistance, Icons.straighten,
+          tr('Measure distance', 'قياس المسافة')),
+      _GroupTool.tool(PdfEditTool.measurePerimeter, Icons.timeline,
+          tr('Measure perimeter', 'قياس المحيط')),
+      _GroupTool.tool(PdfEditTool.measureArea, Icons.crop_din,
+          tr('Measure area', 'قياس المساحة')),
       _GroupTool.tool(PdfEditTool.measureVolume, Icons.view_in_ar,
-          'Measure volume (area × depth)'),
+          tr('Measure volume (area × depth)', 'قياس الحجم (المساحة × العمق)')),
       _GroupTool.tool(PdfEditTool.measureSlope, Icons.trending_up,
-          'Measure slope (rise/run)'),
-      _GroupTool.tool(PdfEditTool.measureAngle, Icons.architecture,
-          'Measure angle - click three points'),
-      _GroupTool.tool(PdfEditTool.measureArc, Icons.gesture,
-          'Measure arc length - click three points'),
-    ]),
-    _ToolGroup('edit', 'Edit', Icons.design_services, [
+          tr('Measure slope (rise/run)', 'قياس الميل (ارتفاع/امتداد)')),
       _GroupTool.tool(
-          PdfEditTool.content, Icons.format_shapes, 'Edit page content'),
-      _GroupTool.tool(PdfEditTool.form, Icons.ballot_outlined,
-          'Form fields - tap to select, double-tap to fill, drag to add'),
-      _GroupTool.tool(PdfEditTool.redact, Icons.gradient,
-          'Redact - drag a region, then apply'),
-      _GroupTool.tool(PdfEditTool.snapshot, Icons.crop,
-          'Snapshot - drag a region to capture it (paste back as vector)'),
+          PdfEditTool.measureAngle,
+          Icons.architecture,
+          tr('Measure angle - click three points',
+              'قياس الزاوية - انقر ثلاث نقاط')),
+      _GroupTool.tool(
+          PdfEditTool.measureArc,
+          Icons.gesture,
+          tr('Measure arc length - click three points',
+              'قياس طول القوس - انقر ثلاث نقاط')),
+    ]),
+    _ToolGroup('edit', pdfStrings.edit, Icons.design_services, [
+      _GroupTool.tool(PdfEditTool.content, Icons.format_shapes,
+          tr('Edit page content', 'تحرير محتوى الصفحة')),
+      _GroupTool.tool(
+          PdfEditTool.form,
+          Icons.ballot_outlined,
+          tr('Form fields - tap to select, double-tap to fill, drag to add',
+              'حقول النماذج - انقر للتحديد، انقر مرتين للملء، واسحب للإضافة')),
+      _GroupTool.tool(
+          PdfEditTool.redact,
+          Icons.gradient,
+          tr('Redact - drag a region, then apply',
+              'إخفاء - اسحب منطقة ثم طبّق')),
+      _GroupTool.tool(
+          PdfEditTool.snapshot,
+          Icons.crop,
+          tr('Snapshot - drag a region to capture it (paste back as vector)',
+              'لقطة - اسحب منطقة لالتقاطها (يمكن لصقها كمتجه)')),
     ]),
   ];
 
@@ -523,8 +544,10 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
       initial: controller.measurementScale,
       onCalibrate: () {
         controller.tool = PdfEditTool.calibrate;
-        messenger?.showSnackBar(const SnackBar(
-          content: Text('Draw a line of known length to calibrate the scale.'),
+        messenger?.showSnackBar(SnackBar(
+          content: Text(tr(
+              'Draw a line of known length to calibrate the scale.',
+              'ارسم خطًا بطول معروف لمعايرة المقياس')),
         ));
       },
     );
@@ -583,7 +606,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
     if (element == null) return;
     final text = await widget.textPrompt(
       context,
-      title: 'Replace text',
+      title: tr('Replace text', 'استبدال النص'),
       initial: element.text ?? '',
       multiline: false,
     );
@@ -634,7 +657,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
     if (element == null) return;
     final text = await widget.textPrompt(
       context,
-      title: 'Reflow paragraph',
+      title: tr('Reflow paragraph', 'إعادة تنسيق الفقرة'),
       initial: element.text ?? '',
       multiline: true,
     );
@@ -644,9 +667,10 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
       ScaffoldMessenger.maybeOf(context)
         ?..clearSnackBars()
         ..showSnackBar(SnackBar(
-          content: const Text(
+          content: Text(tr(
               "Couldn't reflow - this isn't a single-column paragraph this "
-              'tool can re-wrap. Try Replace text instead.'),
+                  'tool can re-wrap. Try Replace text instead.',
+              'تعذر إعادة التنسيق - ليست فقرة من عمود واحد يمكن إعادة لفها. جرّب استبدال النص بدلًا من ذلك.')),
           behavior: SnackBarBehavior.floating,
           margin: pdfFloatingToastMargin(context),
         ));
@@ -665,7 +689,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
         ScaffoldMessenger.maybeOf(context)
           ?..clearSnackBars()
           ..showSnackBar(SnackBar(
-            content: const Text("Couldn't replace image"),
+            content: Text(tr("Couldn't replace image", 'تعذر استبدال الصورة')),
             behavior: SnackBarBehavior.floating,
             margin: pdfFloatingToastMargin(context),
           ));
@@ -693,8 +717,9 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
     _flattenToast(
       context,
       flattened
-          ? 'Annotations flattened into the pages'
-          : 'No annotations to flatten',
+          ? tr('Annotations flattened into the pages',
+              'تم تسطيح التعليقات داخل الصفحات')
+          : tr('No annotations to flatten', 'لا توجد تعليقات لتسطيحها'),
       undoable: flattened,
     );
   }
@@ -704,8 +729,9 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
     _flattenToast(
       context,
       flattened
-          ? 'Form fields flattened into the pages'
-          : 'No form fields to flatten',
+          ? tr('Form fields flattened into the pages',
+              'تم تسطيح حقول النماذج داخل الصفحات')
+          : tr('No form fields to flatten', 'لا توجد حقول نماذج لتسطيحها'),
       undoable: flattened,
     );
   }
@@ -722,7 +748,8 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
         margin: pdfFloatingToastMargin(context),
         duration: const Duration(seconds: 4),
         action: undoable && controller.canUndo
-            ? SnackBarAction(label: 'Undo', onPressed: controller.undo)
+            ? SnackBarAction(
+                label: tr('Undo', 'تراجع'), onPressed: controller.undo)
             : null,
       ));
   }
@@ -735,9 +762,9 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
     );
     if (count == null || !context.mounted) return;
     final message = switch (count) {
-      0 => 'No matching colors found',
-      1 => 'Replaced 1 color',
-      _ => 'Replaced $count colors',
+      0 => tr('No matching colors found', 'لم يتم العثور على ألوان مطابقة'),
+      1 => tr('Replaced 1 color', 'تم استبدال لون واحد'),
+      _ => tr('Replaced $count colors', 'تم استبدال $count لونًا'),
     };
     ScaffoldMessenger.maybeOf(context)
       ?..clearSnackBars()
@@ -753,19 +780,19 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
       context: context,
       builder: (context) => AlertDialog(
         key: const ValueKey('pdf-redaction-confirm'),
-        title: const Text('Apply redactions?'),
-        content: const Text(
-            'The marked content will be permanently removed from the '
-            'document. This cannot be undone.'),
+        title: Text(tr('Apply redactions?', 'تطبيق الإخفاءات؟')),
+        content: Text(tr(
+            'The marked content will be permanently removed from the document. This cannot be undone.',
+            'سيتم حذف المحتوى المحدد نهائيًا من المستند. لا يمكن التراجع عن ذلك.')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
+            child: Text(tr('Cancel', 'إلغاء')),
           ),
           FilledButton(
             key: const ValueKey('pdf-redaction-confirm-apply'),
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Apply'),
+            child: Text(tr('Apply', 'تطبيق')),
           ),
         ],
       ),
@@ -774,7 +801,9 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
     final burned = controller.applyRedactions();
     _flattenToast(
       context,
-      burned ? 'Redactions applied' : 'No redactions to apply',
+      burned
+          ? tr('Redactions applied', 'تم تطبيق الإخفاءات')
+          : 'لا توجد إخفاءات لتطبيقها',
       undoable: false,
     );
   }
@@ -789,9 +818,9 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
     final text = await widget.textPrompt(
       context,
       title: switch (annotation.subtype) {
-        'FreeText' => 'Text',
-        'Stamp' => 'Stamp text',
-        _ => 'Note',
+        'FreeText' => tr('Text', 'نص'),
+        'Stamp' => tr('Stamp text', 'نص ختم'),
+        _ => pdfStrings.note,
       },
       initial: controller.selectedText ?? '',
       multiline: annotation.subtype != 'Stamp',
@@ -923,12 +952,12 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
         if (widget.showUndoRedo) ...[
           IconButton(
             icon: const Icon(Icons.undo),
-            tooltip: 'Undo (⌘Z)',
+            tooltip: pdfStrings.undo,
             onPressed: controller.canUndo ? controller.undo : null,
           ),
           IconButton(
             icon: const Icon(Icons.redo),
-            tooltip: 'Redo (⇧⌘Z)',
+            tooltip: pdfStrings.redo,
             onPressed: controller.canRedo ? controller.redo : null,
           ),
           const _DockDivider(),
@@ -947,7 +976,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
           const _DockDivider(),
           IconButton(
             icon: const Icon(Icons.save_alt),
-            tooltip: 'Save… (⌘S / Ctrl+S)',
+            tooltip: tr('Save… (⌘S / Ctrl+S)', 'حفظ… (⌘S / Ctrl+S)'),
             // disabled while the document matches what was opened - there's
             // nothing to write until an edit bumps the revision cursor
             onPressed: controller.isModified
@@ -988,10 +1017,10 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
         toolButtons.add(_LabeledToolButton(
           icon: entry.icon,
           label: switch (tool) {
-            PdfEditTool.content => 'Content',
-            PdfEditTool.form => 'Form',
-            PdfEditTool.redact => 'Redact',
-            PdfEditTool.snapshot => 'Snapshot',
+            PdfEditTool.content => pdfStrings.content,
+            PdfEditTool.form => pdfStrings.form,
+            PdfEditTool.redact => pdfStrings.redact,
+            PdfEditTool.snapshot => pdfStrings.snapshot,
             _ => _entryLabel(entry),
           },
           tooltip: _entryTip(entry),
@@ -1022,8 +1051,9 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
       toolButtons.add(_LabeledToolButton(
         key: const ValueKey('pdf-toolbar-color-processing'),
         icon: Icons.palette_outlined,
-        label: 'Color',
-        tooltip: 'Color processing - find and replace page-content colors',
+        label: pdfStrings.color,
+        tooltip: tr('Color processing - find and replace page-content colors',
+            'معالجة الألوان - البحث واستبدال ألوان محتوى الصفحة'),
         active: false,
         onTap: () => _showColorProcessing(context),
       ));
@@ -1043,7 +1073,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
               _StripLabel(
                 group.label,
                 hint: group.id == 'markup' && !hasTextSelection
-                    ? 'Select text to use markup'
+                    ? pdfStrings.selectTextToUseMarkup
                     : null,
               ),
               ...toolButtons,
@@ -1143,8 +1173,10 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
         IconButton(
           icon: const Icon(Icons.touch_app),
           tooltip: controller.fingerDrawsInk
-              ? 'Finger draws - tap so it scrolls instead'
-              : 'Finger scrolls (pen draws) - tap so it draws',
+              ? tr('Finger draws - tap so it scrolls instead',
+                  'الإصبع يرسم - انقر حتى يصبح التمرير بدلًا من الرسم')
+              : tr('Finger scrolls (pen draws) - tap so it draws',
+                  'الإصبع يمرّر (والقلم يرسم) - انقر حتى يصبح الرسم'),
           isSelected: controller.fingerDrawsInk,
           onPressed: () =>
               controller.fingerDrawsInk = !controller.fingerDrawsInk,
@@ -1152,12 +1184,12 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
       if (controller.hasPendingInk && !controller.inkAutoCommits) ...[
         IconButton(
           icon: const Icon(Icons.check),
-          tooltip: 'Add ink annotation',
+          tooltip: tr('Add ink annotation', 'إضافة تعليق بالقلم'),
           onPressed: controller.finishInk,
         ),
         IconButton(
           icon: const Icon(Icons.close),
-          tooltip: 'Discard drawing',
+          tooltip: tr('Discard drawing', 'إلغاء الرسم'),
           onPressed: controller.discardInk,
         ),
       ],
@@ -1170,12 +1202,12 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
       if (controller.tool == PdfEditTool.signature)
         IconButton(
           icon: const Icon(Icons.restart_alt),
-          tooltip: 'Draw a new signature…',
+          tooltip: tr('Draw a new signature…', 'ارسم توقيعًا جديدًا…'),
           onPressed: () => _drawSignature(context),
         ),
       if (controller.tool == PdfEditTool.count)
         Tooltip(
-          message: 'Check-marks on the document',
+          message: tr('Check-marks on the document', 'علامات الصح على المستند'),
           child: Chip(
             key: const ValueKey('pdf-count-tally'),
             avatar: const Icon(Icons.task_alt, size: 18),
@@ -1195,8 +1227,9 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
     final flatten = widget.showFlatten
         ? _LabeledToolButton(
             icon: Icons.layers_outlined,
-            label: 'Flatten',
-            tooltip: 'Flatten annotations into the pages',
+            label: tr('Flatten', 'تسطيح'),
+            tooltip: tr('Flatten annotations into the pages',
+                'تم تسطيح التعليقات داخل الصفحات'),
             active: false,
             onTap: () => _flatten(context),
           )
@@ -1206,7 +1239,8 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
         if (flatten != null) ...[flatten, const _MiniDivider()],
         PopupMenuButton<PdfFormFieldKind>(
           key: const ValueKey('pdf-form-field-type'),
-          tooltip: 'New field type - drag on a page to add one',
+          tooltip: tr('New field type - drag on a page to add one',
+              'نوع الحقل الجديد - اسحب على الصفحة لإضافة واحد'),
           icon: Icon(switch (controller.newFormFieldKind) {
             PdfFormFieldKind.text => Icons.text_fields,
             PdfFormFieldKind.checkBox => Icons.check_box_outlined,
@@ -1214,30 +1248,31 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
           }),
           initialValue: controller.newFormFieldKind,
           onSelected: (kind) => controller.newFormFieldKind = kind,
-          itemBuilder: (context) => const [
+          itemBuilder: (context) => [
             PopupMenuItem(
               key: ValueKey('pdf-form-type-text'),
               value: PdfFormFieldKind.text,
               height: 34,
-              child: Text('Text field'),
+              child: Text(pdfStrings.textField),
             ),
             PopupMenuItem(
               key: ValueKey('pdf-form-type-checkbox'),
               value: PdfFormFieldKind.checkBox,
               height: 34,
-              child: Text('Check box'),
+              child: Text(tr('Image button', 'زر صورة')),
             ),
             PopupMenuItem(
               key: ValueKey('pdf-form-type-button'),
               value: PdfFormFieldKind.pushButton,
               height: 34,
-              child: Text('Image button'),
+              child: Text(tr('Image button', 'زر صورة')),
             ),
           ],
         ),
         IconButton(
           icon: const Icon(Icons.layers_clear_outlined),
-          tooltip: 'Flatten form - bake values into the pages',
+          tooltip: tr('Flatten form - bake values into the pages',
+              'تسطيح النموذج - دمج القيم داخل الصفحات'),
           onPressed:
               controller.acroForm == null ? null : () => _flattenForm(context),
         ),
@@ -1249,7 +1284,8 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
         IconButton(
           key: const ValueKey('pdf-apply-redactions'),
           icon: const Icon(Icons.check),
-          tooltip: 'Apply redactions (irreversible)',
+          tooltip: tr('Apply redactions (irreversible)',
+              'تطبيق الإخفاءات (غير قابل للتراجع)'),
           onPressed: controller.hasRedactionMarks
               ? () => _applyRedactions(context)
               : null,
@@ -1279,14 +1315,14 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
             padding: const EdgeInsets.fromLTRB(12, 7, 10, 7),
             child: Row(mainAxisSize: MainAxisSize.min, children: [
               _StripLabel(switch (controller.selectedAnnotationSlots.length) {
-                1 => 'Selection',
-                final n => '$n selected',
+                1 => tr('Selection', 'التحديد'),
+                final n => tr('$n selected', '$n محدد'),
               }),
               IconButton(
                 icon: const Icon(Icons.delete_outline),
                 tooltip: switch (controller.selectedAnnotationSlots.length) {
-                  1 => 'Delete annotation',
-                  final n => 'Delete $n annotations',
+                  1 => tr('Delete annotation', 'حذف التعليق'),
+                  final n => tr('Delete $n annotations', 'حذف $n تعليقًا'),
                 },
                 onPressed: controller.deleteSelected,
               ),
@@ -1294,13 +1330,14 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
                 IconButton(
                   key: const ValueKey('pdf-edit-selected-text'),
                   icon: const Icon(Icons.edit),
-                  tooltip: 'Edit annotation text',
+                  tooltip: tr('Edit annotation text', 'تحرير نص التعليق'),
                   onPressed: () => _editSelectedText(context),
                 ),
               if (controller.canRestyleSelectedText)
                 IconButton(
                   icon: const Icon(Icons.fit_screen),
-                  tooltip: 'Autosize text box (Alt+Z)',
+                  tooltip: tr('Autosize text box (Alt+Z)',
+                      'ضبط تلقائي لحجم مربع النص (Alt+Z)'),
                   onPressed: controller.autosizeSelectedTextBox,
                 ),
             ]),
@@ -1332,24 +1369,27 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
   Widget _alignmentCluster(BuildContext context) {
     final canDistribute = controller.canDistributeSelected;
     return Row(mainAxisSize: MainAxisSize.min, children: [
-      _alignButton(
-          PdfAlignment.left, Icons.align_horizontal_left, 'Align left'),
+      _alignButton(PdfAlignment.left, Icons.align_horizontal_left,
+          tr('Align left', 'محاذاة لليسار')),
       _alignButton(PdfAlignment.horizontalCenter, Icons.align_horizontal_center,
-          'Align horizontal centers'),
-      _alignButton(
-          PdfAlignment.right, Icons.align_horizontal_right, 'Align right'),
+          tr('Align horizontal centers', 'محاذاة المراكز أفقيًا')),
+      _alignButton(PdfAlignment.right, Icons.align_horizontal_right,
+          tr('Align right', 'محاذاة لليمين')),
       const _MiniDivider(),
-      _alignButton(PdfAlignment.top, Icons.align_vertical_top, 'Align top'),
+      _alignButton(PdfAlignment.top, Icons.align_vertical_top,
+          tr('Align top', 'محاذاة لأعلى')),
       _alignButton(PdfAlignment.verticalCenter, Icons.align_vertical_center,
-          'Align vertical centers'),
-      _alignButton(
-          PdfAlignment.bottom, Icons.align_vertical_bottom, 'Align bottom'),
+          tr('Align vertical centers', 'محاذاة المراكز عموديًا')),
+      _alignButton(PdfAlignment.bottom, Icons.align_vertical_bottom,
+          tr('Align bottom', 'محاذاة لأسفل')),
       const _MiniDivider(),
-      _alignButton(PdfAlignment.distributeHorizontal,
-          Icons.horizontal_distribute, 'Distribute horizontally',
+      _alignButton(
+          PdfAlignment.distributeHorizontal,
+          Icons.horizontal_distribute,
+          tr('Distribute horizontally', 'توزيع أفقي'),
           enabled: canDistribute),
       _alignButton(PdfAlignment.distributeVertical, Icons.vertical_distribute,
-          'Distribute vertically',
+          tr('Distribute vertically', 'توزيع عمودي'),
           enabled: canDistribute),
     ]);
   }
@@ -1370,29 +1410,29 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
   /// The strip shown while a page-content element is selected.
   Widget _elementStrip(BuildContext context) {
     final row = Row(mainAxisSize: MainAxisSize.min, children: [
-      const _StripLabel('Element'),
+      _StripLabel(tr('Element', 'عنصر')),
       IconButton(
         icon: const Icon(Icons.delete_outline),
-        tooltip: 'Delete element',
+        tooltip: tr('Delete element', 'حذف العنصر'),
         onPressed: controller.deleteSelectedElement,
       ),
       if (controller.canEditSelectedElementText) ...[
         IconButton(
           key: const ValueKey('pdf-replace-element-text'),
           icon: const Icon(Icons.edit),
-          tooltip: 'Replace text',
+          tooltip: tr('Replace text', 'استبدال النص'),
           onPressed: () => _editElementText(context),
         ),
         IconButton(
           key: const ValueKey('pdf-style-element-text'),
           icon: const Icon(Icons.format_color_text),
-          tooltip: 'Edit text & style',
+          tooltip: pdfStrings.editTextStyle,
           onPressed: () => _editElementTextStyle(context),
         ),
         IconButton(
           key: const ValueKey('pdf-reflow-element-text'),
           icon: const Icon(Icons.wrap_text),
-          tooltip: 'Reflow paragraph',
+          tooltip: tr('Reflow paragraph', 'إعادة تنسيق الفقرة'),
           onPressed: () => _reflowElementText(context),
         ),
       ],
@@ -1406,7 +1446,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.download_outlined),
-          tooltip: 'Save image',
+          tooltip: tr('Save image', 'حفظ الصورة'),
           onPressed: _exportingElementImage
               ? null
               : () => _exportElementImage(context),
@@ -1421,7 +1461,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
                   child: CircularProgressIndicator(strokeWidth: 2),
                 )
               : const Icon(Icons.image_outlined),
-          tooltip: 'Replace image',
+          tooltip: tr('Replace image', 'استبدال الصورة'),
           onPressed: _replacingElementImage
               ? null
               : () => _replaceElementImage(context),
@@ -1467,7 +1507,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 2),
         child: Tooltip(
-          message: 'More colors…',
+          message: tr('More colors…', 'ألوان أخرى…'),
           child: Material(
             key: const ValueKey('pdf-more-colors'),
             color: Colors.transparent,
@@ -1496,7 +1536,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
       ),
       IconButton(
         icon: const Icon(Icons.colorize),
-        tooltip: 'Pick a color from the page',
+        tooltip: tr('Pick a color from the page', 'اختر لونًا من الصفحة'),
         isSelected: controller.isPickingColor,
         onPressed: () => controller.isPickingColor
             ? controller.cancelColorPick()
@@ -1523,8 +1563,9 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
     return Row(mainAxisSize: MainAxisSize.min, children: [
       for (final w in presets)
         Tooltip(
-          message:
+          message: tr(
               'Stroke ${w.toStringAsFixed(w == w.roundToDouble() ? 0 : 1)}',
+              'سمك ${w.toStringAsFixed(w == w.roundToDouble() ? 0 : 1)}'),
           child: InkWell(
             onTap: () => set(w),
             borderRadius: BorderRadius.circular(8),
@@ -1611,8 +1652,8 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
   Widget _scaleChip(BuildContext context) {
     return _SettingChip(
       key: const ValueKey('pdf-measure-scale'),
-      leading: 'Scale',
-      value: controller.measurementScale?.ratioLabel ?? 'Set…',
+      leading: tr('Scale', '... ضبط'),
+      value: controller.measurementScale?.ratioLabel ?? tr('Set…', 'المقياس'),
       onTap: () => _setScale(context),
     );
   }
@@ -1621,8 +1662,8 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
     return _LabeledToolButton(
       key: const ValueKey('pdf-takeoff-totals'),
       icon: Icons.functions,
-      label: 'Totals',
-      tooltip: 'Takeoff totals',
+      label: tr('Totals', 'الإجماليات'),
+      tooltip: tr('Takeoff totals', 'إجماليات الفلاس'),
       active: false,
       onTap: () => _showTakeoffPanel(context),
     );
@@ -1767,13 +1808,13 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
           if (widget.showUndoRedo) ...[
             IconButton(
               icon: const Icon(Icons.undo),
-              tooltip: 'Undo (⌘Z)',
+              tooltip: tr('Undo (⌘Z)', 'تراجع'),
               visualDensity: VisualDensity.compact,
               onPressed: controller.canUndo ? controller.undo : null,
             ),
             IconButton(
               icon: const Icon(Icons.redo),
-              tooltip: 'Redo (⇧⌘Z)',
+              tooltip: tr('Redo (⇧⌘Z)', 'إعادة'),
               visualDensity: VisualDensity.compact,
               onPressed: controller.canRedo ? controller.redo : null,
             ),
@@ -1786,7 +1827,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    _activeToolLabel(context,tool),
+                    _activeToolLabel(context, tool),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     softWrap: false,
@@ -1823,8 +1864,8 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
         IconButton(
           icon: const Icon(Icons.delete_outline),
           tooltip: switch (controller.selectedAnnotationSlots.length) {
-            1 => 'Delete annotation',
-            final n => 'Delete $n annotations',
+            1 => tr('Delete annotation', 'حذف التعليق'),
+            final n => tr('Delete $n annotations', 'حذف $n تعليقًا'),
           },
           visualDensity: VisualDensity.compact,
           onPressed: controller.deleteSelected,
@@ -1833,7 +1874,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
           IconButton(
             key: const ValueKey('pdf-edit-selected-text'),
             icon: const Icon(Icons.edit),
-            tooltip: 'Edit annotation text',
+            tooltip: tr('Edit annotation text', 'تحرير نص التعليق'),
             visualDensity: VisualDensity.compact,
             onPressed: () => _editSelectedText(context),
           ),
@@ -1844,7 +1885,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
         IconButton(
           key: const ValueKey('pdf-mobile-delete-element'),
           icon: const Icon(Icons.delete_outline),
-          tooltip: 'Delete element',
+          tooltip: tr('Delete element', 'حذف العنصر'),
           visualDensity: VisualDensity.compact,
           onPressed: controller.deleteSelectedElement,
         ),
@@ -1855,14 +1896,14 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
           IconButton(
             key: const ValueKey('pdf-replace-element-text'),
             icon: const Icon(Icons.format_color_text),
-            tooltip: 'Edit text & style',
+            tooltip: pdfStrings.editTextStyle,
             visualDensity: VisualDensity.compact,
             onPressed: () => _editElementTextStyle(context),
           ),
           IconButton(
             key: const ValueKey('pdf-reflow-element-text'),
             icon: const Icon(Icons.wrap_text),
-            tooltip: 'Reflow paragraph',
+            tooltip: tr('Reflow paragraph', 'إعادة تنسيق الفقرة'),
             visualDensity: VisualDensity.compact,
             onPressed: () => _reflowElementText(context),
           ),
@@ -1877,7 +1918,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.download_outlined),
-            tooltip: 'Save image',
+            tooltip: tr('Save image', 'حفظ الصورة'),
             visualDensity: VisualDensity.compact,
             onPressed: _exportingElementImage
                 ? null
@@ -1893,7 +1934,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : const Icon(Icons.image_outlined),
-            tooltip: 'Replace image',
+            tooltip: tr('Replace image', 'استبدال الصورة'),
             visualDensity: VisualDensity.compact,
             onPressed: _replacingElementImage
                 ? null
@@ -1948,18 +1989,17 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
     return Icons.near_me;
   }
 
-
   String _activeToolLabel(BuildContext context, PdfEditTool? tool) {
-    if (tool == null) return tr('Select', 'تحديد');
+    if (tool == null) return pdfStrings.select;
     switch (tool) {
       case PdfEditTool.content:
-        return tr('Content', 'المحتوى');
+        return pdfStrings.content;
       case PdfEditTool.form:
-        return 'Form';
+        return pdfStrings.form;
       case PdfEditTool.redact:
-        return 'Redact';
+        return pdfStrings.redact;
       case PdfEditTool.snapshot:
-        return 'Snapshot';
+        return pdfStrings.snapshot;
       default:
         break;
     }
@@ -1973,9 +2013,8 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
         }
       }
     }
-    return 'Select';
+    return pdfStrings.select;
   }
-
 
   /// Opens the mobile tools sheet: group tabs, a tool grid, and the active
   /// tool's settings. The tab state lives in the sheet so switching groups
@@ -2028,7 +2067,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
                       group.label,
                       hint:
                           group.id == 'markup' && !viewerController.hasSelection
-                              ? 'Select text to use markup'
+                              ? pdfStrings.selectTextToUseMarkup
                               : null,
                     ),
                     const SizedBox(height: 10),
@@ -2085,7 +2124,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
           _SheetToolTile(
             key: const ValueKey('pdf-takeoff-totals'),
             icon: Icons.functions,
-            label: 'Totals',
+            label: tr('Totals', 'الإجماليات'),
             active: false,
             enabled: true,
             onTap: () {
@@ -2097,7 +2136,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
           _SheetToolTile(
             key: const ValueKey('pdf-toolbar-color-processing'),
             icon: Icons.palette_outlined,
-            label: 'Color',
+            label: tr('Color', 'لون'),
             active: false,
             enabled: true,
             onTap: () {
@@ -2294,7 +2333,7 @@ class _GroupChip extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final on = active;
     final fg = on ? scheme.primary : scheme.onSurfaceVariant;
-    final label = _toolsHandle ? tr('Tools', 'الأدوات') : group!.label;
+    final label = _toolsHandle ? pdfStrings.tools : group!.label;
     final icon = _toolsHandle ? Icons.keyboard_arrow_up : group!.icon;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 3),
@@ -2467,7 +2506,7 @@ class _StampSheetToolTile extends StatelessWidget {
       builder: (context, menuController, child) => _SheetToolTile(
         key: const ValueKey('pdf-stamp-sheet-tool-popup'),
         icon: Icons.approval,
-        label: 'Stamp',
+        label: pdfStrings.stamp,
         active: active,
         enabled: true,
         onTap: () {
@@ -2519,7 +2558,7 @@ class _StampMenuPanel extends StatelessWidget {
       builder: (context, _) {
         final active = controller.activeStamp;
         final preview =
-            active ?? PdfCustomStamp(text: 'TEXT', color: _currentColor);
+            active ?? PdfCustomStamp(text: tr('TEXT', 'نص'), color: _currentColor);
         final stamps = controller.customStamps;
         return ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 320, maxHeight: 440),
@@ -2535,7 +2574,7 @@ class _StampMenuPanel extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        'Stamp',
+                        pdfStrings.stamp,
                         style: Theme.of(context).textTheme.labelLarge,
                       ),
                       const SizedBox(height: 8),
@@ -2573,7 +2612,7 @@ class _StampMenuPanel extends StatelessWidget {
                               ? const Icon(Icons.check)
                               : const SizedBox(width: 24),
                           onPressed: () => _select(menuController, null),
-                          child: const Text('Type text each time'),
+                          child: Text(tr('Type text each time', 'اكتب النص كل مرة')),
                         ),
                         for (var i = 0; i < stamps.length; i++)
                           _StampMenuItem(
@@ -2591,7 +2630,7 @@ class _StampMenuPanel extends StatelessWidget {
                             child: Align(
                               alignment: Alignment.centerLeft,
                               child: Text(
-                                'No custom stamps',
+                                tr('No custom stamps', 'لا توجد أختام مخصصة'),
                                 style: TextStyle(
                                   color: Theme.of(context)
                                       .colorScheme
@@ -2613,7 +2652,7 @@ class _StampMenuPanel extends StatelessWidget {
                     menuController.close();
                     if (dialogContext.mounted) onManage(dialogContext);
                   },
-                  child: const Text('Manage stamps…'),
+                  child: Text(tr('Manage stamps…', 'إدارة الأختام…')),
                 ),
               ],
             ),
@@ -3006,16 +3045,17 @@ class _StyleMenuState extends State<_StyleMenu> {
 
   /// A short human label for a line ending in the picker.
   static String _endingLabel(PdfLineEnding ending) => switch (ending) {
-        PdfLineEnding.none => 'None',
-        PdfLineEnding.square => 'Square',
-        PdfLineEnding.circle => 'Circle',
-        PdfLineEnding.diamond => 'Diamond',
-        PdfLineEnding.openArrow => 'Open arrow',
-        PdfLineEnding.closedArrow => 'Closed arrow',
-        PdfLineEnding.butt => 'Butt',
-        PdfLineEnding.rOpenArrow => 'Open arrow (rev.)',
-        PdfLineEnding.rClosedArrow => 'Closed arrow (rev.)',
-        PdfLineEnding.slash => 'Slash',
+        PdfLineEnding.none => tr('None', 'لا شيء'),
+        PdfLineEnding.square => tr('Square', 'مربع'),
+        PdfLineEnding.circle => tr('Circle', 'دائرة'),
+        PdfLineEnding.diamond => tr('Diamond', 'معين'),
+        PdfLineEnding.openArrow => tr('Open arrow', 'سهم مفتوح'),
+        PdfLineEnding.closedArrow => tr('Closed arrow', 'سهم مغلق'),
+        PdfLineEnding.butt => tr('Butt', 'مسطح'),
+        PdfLineEnding.rOpenArrow => tr('Open arrow (rev.)', 'سهم مفتوح (عكسي)'),
+        PdfLineEnding.rClosedArrow =>
+          tr('Closed arrow (rev.)', 'سهم مغلق (عكسي)'),
+        PdfLineEnding.slash => tr('Slash', 'شرطة مائلة'),
       };
 
   /// One line-ending dropdown (start or end), each item previewed with a
@@ -3143,7 +3183,7 @@ class _StyleMenuState extends State<_StyleMenu> {
                   if (isEraser)
                     _slider(
                       key: const ValueKey('pdf-eraser-size'),
-                      label: 'Eraser size',
+                      label: tr('Eraser size', 'حجم الممحاة'),
                       value: controller.eraserRadius,
                       min: 2,
                       max: 40,
@@ -3154,7 +3194,7 @@ class _StyleMenuState extends State<_StyleMenu> {
                     ),
                   if (fields.stroke)
                     _slider(
-                      label: 'Stroke width',
+                      label: tr('Stroke width', 'سمك الخط'),
                       value: strokeValue,
                       min: 0.5,
                       max: 12,
@@ -3174,7 +3214,7 @@ class _StyleMenuState extends State<_StyleMenu> {
                     ),
                   if (fields.opacity)
                     _slider(
-                      label: 'Opacity',
+                      label: tr('Opacity', 'الشفافية'),
                       value: opacityValue,
                       min: 0.1,
                       max: 1,
@@ -3197,7 +3237,7 @@ class _StyleMenuState extends State<_StyleMenu> {
                       padding: const EdgeInsets.symmetric(vertical: 4),
                       child: Row(
                         children: [
-                          const Expanded(child: Text('Line type')),
+                          Expanded(child: Text(tr('Line type', 'نوع الخط'))),
                           DropdownButton<PdfLineStyle>(
                             key: const ValueKey('pdf-line-type'),
                             isDense: true,
@@ -3229,7 +3269,7 @@ class _StyleMenuState extends State<_StyleMenu> {
                   if (fields.lineEndings) ...[
                     _lineEndingRow(
                       context: context,
-                      label: 'Line start',
+                      label: tr('Line start', 'بداية الخط'),
                       keyValue: 'pdf-line-start-ending',
                       atEnd: false,
                       value: lineEndings.$1,
@@ -3242,7 +3282,7 @@ class _StyleMenuState extends State<_StyleMenu> {
                     ),
                     _lineEndingRow(
                       context: context,
-                      label: 'Line end',
+                      label: tr('Line end', 'نهاية الخط'),
                       keyValue: 'pdf-line-end-ending',
                       atEnd: true,
                       value: lineEndings.$2,
@@ -3257,14 +3297,14 @@ class _StyleMenuState extends State<_StyleMenu> {
                   if (fields.shapeFill && widget.showColor)
                     _boxColorRow(
                       context: context,
-                      label: 'Fill',
+                      label: tr('Fill', 'التعبئة'),
                       keyPrefix: 'pdf-shape-fill',
                       value: shapeFillValue,
                       onChanged: _setShapeFill,
                     ),
                   if (fields.font)
                     _slider(
-                      label: 'Font size',
+                      label: tr('Font size', 'حجم الخط'),
                       value: _draggingFontSize ??
                           selectedStyle?.size ??
                           captionStyle?.size ??
@@ -3304,7 +3344,7 @@ class _StyleMenuState extends State<_StyleMenu> {
                     Padding(
                       padding: const EdgeInsets.only(top: 4),
                       child: Row(children: [
-                        const SizedBox(width: 86, child: Text('Font')),
+                        SizedBox(width: 86, child: Text(pdfStrings.font)),
                         Expanded(
                           child: Align(
                             alignment: Alignment.centerLeft,
@@ -3323,7 +3363,7 @@ class _StyleMenuState extends State<_StyleMenu> {
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
                       child: Row(children: [
-                        const SizedBox(width: 86, child: Text('Style')),
+                        SizedBox(width: 86, child: Text(pdfStrings.style)),
                         FontStyleToggles(
                           font: selectedStyle?.font ??
                               captionStyle?.font ??
@@ -3335,7 +3375,7 @@ class _StyleMenuState extends State<_StyleMenu> {
                     Padding(
                       padding: const EdgeInsets.only(top: 6),
                       child: Row(children: [
-                        const SizedBox(width: 86, child: Text('Align')),
+                        SizedBox(width: 86, child: Text(tr('Align', 'محاذاة'))),
                         TextAlignToggles(
                           align: controller.selectedTextAlign ??
                               controller.textAlign ??
@@ -3348,14 +3388,14 @@ class _StyleMenuState extends State<_StyleMenu> {
                   if (fields.boxColors && widget.showColor) ...[
                     _boxColorRow(
                       context: context,
-                      label: 'Text fill',
+                      label: tr('Text fill', 'تعبئة النص'),
                       keyPrefix: 'pdf-text-fill',
                       value: fillValue,
                       onChanged: _setTextFill,
                     ),
                     _boxColorRow(
                       context: context,
-                      label: 'Text border',
+                      label: tr('Text border', 'حدود النص'),
                       keyPrefix: 'pdf-text-border',
                       value: borderValue,
                       onChanged: _setTextBorder,
@@ -3379,8 +3419,9 @@ class _StyleMenuState extends State<_StyleMenu> {
             menu.open();
           }
 
-          final tip =
-              widget.fields.eraser ? 'Eraser size' : 'Stroke, opacity, font';
+          final tip = widget.fields.eraser
+              ? tr('Eraser size', 'حجم الممحاة')
+              : tr('Stroke, opacity, font', 'السمك، الشفافية، الخط');
           Widget holdOnPointerDown(Widget child) => Listener(
                 onPointerDown: (_) => _beginTextEditFocusHold(),
                 child: Focus(
@@ -3600,4 +3641,3 @@ class _LineEndingPainter extends CustomPainter {
   bool shouldRepaint(_LineEndingPainter old) =>
       old.ending != ending || old.atEnd != atEnd || old.color != color;
 }
-

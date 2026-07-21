@@ -1,5 +1,7 @@
 import 'dart:math' as math;
 
+import 'package:dart_pdf_editor/src/editing/localization.dart';
+
 /// The border line style for shape and line annotations: solid, or one of
 /// a few dash patterns. Maps to a PDF `/BS /D` dash array scaled to the
 /// pen width; `PdfAnnotation.borderDash` reads the array back.
@@ -11,10 +13,10 @@ enum PdfLineStyle {
 
   /// A short human label for menus and tooltips.
   String get label => switch (this) {
-        PdfLineStyle.solid => 'Solid',
-        PdfLineStyle.dashed => 'Dashed',
-        PdfLineStyle.dotted => 'Dotted',
-        PdfLineStyle.dashDot => 'Dash-dot',
+        PdfLineStyle.solid => tr('Solid', 'سميك'),
+        PdfLineStyle.dashed => tr('Dashed', 'متقطع'),
+        PdfLineStyle.dotted => tr('Dotted', 'منقط'),
+        PdfLineStyle.dashDot => tr('Dash-dot', 'نقطة - خط'),
       };
 
   /// The `/BS /D` dash array for this style at [strokeWidth], or null for

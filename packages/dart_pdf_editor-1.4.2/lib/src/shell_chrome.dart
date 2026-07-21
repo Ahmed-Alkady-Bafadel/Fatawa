@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:dart_pdf_editor/src/editing/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -429,20 +430,20 @@ class PdfShellBar extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text('Controls',
+                      child: Text(tr('Controls', 'أدوات التحكم'),
                           style: Theme.of(context).textTheme.titleMedium),
                     ),
                   ],
                 ),
                 const SizedBox(height: 14),
                 if (children.isNotEmpty) ...[
-                  const _ShellSheetSectionLabel('View'),
+                  _ShellSheetSectionLabel(tr('View', 'العرض')),
                   const SizedBox(height: 10),
                   for (final child in children) child,
                   const SizedBox(height: 14),
                 ],
                 if (controls.isNotEmpty) ...[
-                  const _ShellSheetSectionLabel('Shell'),
+                  _ShellSheetSectionLabel(tr('Shell', 'الغلاف')),
                   const SizedBox(height: 10),
                   GridView.count(
                     crossAxisCount: 4,
@@ -515,7 +516,7 @@ class PdfShellBar extends StatelessWidget {
                         key: const ValueKey('pdf-shell-controls'),
                         visualDensity: VisualDensity.compact,
                         icon: const Icon(Icons.more_horiz),
-                        tooltip: 'Controls',
+                        tooltip: tr('Controls', 'أدوات التحكم'),
                         onPressed: () => unawaited(_showControls(context)),
                       ),
                     const SizedBox(width: 8),
@@ -592,7 +593,7 @@ class _PdfShellZoomControlState extends State<PdfShellZoomControl> {
       children: [
         PopupMenuButton<double>(
           key: const ValueKey('pdf-shell-zoom-menu'),
-          tooltip: 'Zoom',
+          tooltip: tr('Zoom', 'تكبير'),
           initialValue: _nearestPreset(zoom),
           onSelected: widget.controller.setZoom,
           itemBuilder: (context) => [
@@ -622,7 +623,7 @@ class _PdfShellZoomControlState extends State<PdfShellZoomControl> {
           key: const ValueKey('pdf-shell-zoom-reset'),
           visualDensity: VisualDensity.compact,
           icon: const Icon(Icons.fit_screen),
-          tooltip: 'Reset zoom',
+          tooltip: tr('Reset zoom', 'إعادة تعيين التكبير'),
           onPressed:
               (zoom - 1).abs() < 0.005 ? null : widget.controller.resetZoom,
         ),
@@ -823,7 +824,7 @@ Future<Map<PdfEditTool, LogicalKeyboardKey>?> showPdfShellShortcutsSheet(
           if (focusNode.canRequestFocus) focusNode.requestFocus();
         });
         return AlertDialog(
-          title: const Text('Press a key'),
+          title:  Text(tr('Press a key', 'اضغط على مفتاح')),
           content: KeyboardListener(
             focusNode: focusNode,
             autofocus: true,
@@ -843,12 +844,12 @@ Future<Map<PdfEditTool, LogicalKeyboardKey>?> showPdfShellShortcutsSheet(
                 Navigator.of(context).pop(key);
               }
             },
-            child: const Text('Press a letter key, or Delete to clear.'),
+            child: Text(tr('Press a letter key, or Delete to clear.', 'اضغط على مفتاح حرف، أو حذف للمسح')),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).maybePop(),
-              child: const Text('Cancel'),
+              child:  Text(tr('Cancel', 'إلغاء')),
             ),
           ],
         );
@@ -875,7 +876,7 @@ Future<Map<PdfEditTool, LogicalKeyboardKey>?> showPdfShellShortcutsSheet(
                 child: Row(
                   children: [
                     Expanded(
-                      child: Text('Keyboard shortcuts',
+                      child: Text(tr('Keyboard shortcuts', 'اختصارات لوحة المفاتيح'),
                           style: Theme.of(context).textTheme.titleMedium),
                     ),
                     TextButton(
@@ -883,11 +884,11 @@ Future<Map<PdfEditTool, LogicalKeyboardKey>?> showPdfShellShortcutsSheet(
                       onPressed: () => setSheetState(() => draft =
                           Map<PdfEditTool, LogicalKeyboardKey>.of(
                               pdfEditToolShortcuts)),
-                      child: const Text('Reset'),
+                      child: Text(tr('Reset', 'إعادة تعيين')),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close),
-                      tooltip: 'Close',
+                      tooltip: tr('Close', 'إغلاق'),
                       onPressed: () => Navigator.of(context).maybePop(),
                     ),
                   ],
@@ -929,13 +930,13 @@ Future<Map<PdfEditTool, LogicalKeyboardKey>?> showPdfShellShortcutsSheet(
                   children: [
                     TextButton(
                       onPressed: () => Navigator.of(context).maybePop(),
-                      child: const Text('Cancel'),
-                    ),
+                      child: Text(tr('Cancel', 'إلغاء')),
+                    ), 
                     const SizedBox(width: 8),
                     FilledButton(
                       key: const ValueKey('pdf-shell-shortcuts-done'),
                       onPressed: () => Navigator.of(context).pop(draft),
-                      child: const Text('Done'),
+                      child: Text(tr('Done', 'جاهز')),
                     ),
                   ],
                 ),
@@ -1000,7 +1001,7 @@ Future<void> showPdfShellViewOptionsSheet(
               SwitchListTile(
                 key: const ValueKey('pdf-shell-show-annotations'),
                 secondary: const Icon(Icons.comment_outlined),
-                title: const Text('Show annotations'),
+                title: Text(tr('Show annotations', 'إظهار التعليقات')),
                 value: preferences.showAnnotations,
                 onChanged: (_) async {
                   await _selectViewOption(
@@ -1019,7 +1020,7 @@ Future<void> showPdfShellViewOptionsSheet(
               SwitchListTile(
                 key: const ValueKey('pdf-shell-highlight-forms'),
                 secondary: const Icon(Icons.dynamic_form_outlined),
-                title: const Text('Highlight form fields'),
+                title: Text(tr('Highlight form fields', 'تمييز حقول النموذج')),
                 value: preferences.highlightFormFields,
                 onChanged: (_) async {
                   await _selectViewOption(
@@ -1039,7 +1040,7 @@ Future<void> showPdfShellViewOptionsSheet(
                 SwitchListTile(
                   key: const ValueKey('pdf-shell-reflow-view'),
                   secondary: const Icon(Icons.article_outlined),
-                  title: const Text('Reflow text'),
+                  title: Text(tr('Reflow text', 'نص إعادة التدفق')),
                   value: preferences.showReflowView,
                   onChanged: (_) async {
                     await _selectViewOption(
@@ -1056,7 +1057,7 @@ Future<void> showPdfShellViewOptionsSheet(
                 SwitchListTile(
                   key: const ValueKey('pdf-shell-page-grid'),
                   secondary: const Icon(Icons.view_module_outlined),
-                  title: const Text('Page grid'),
+                  title: Text(tr('Page grid', 'شبكة الصفحة')),
                   value: preferences.showThumbnailView,
                   onChanged: (_) async {
                     await _selectViewOption(
@@ -1082,7 +1083,7 @@ Future<void> showPdfShellViewOptionsSheet(
                       borderRadius: BorderRadius.circular(6),
                     ),
                   ),
-                  title: const Text('Page color…'),
+                  title: Text(tr('Page color…', 'لون الصفحة...')),
                   trailing: Text(hex(preferences.pageColor)),
                   onTap: () async {
                     await _selectViewOption(
@@ -1099,7 +1100,7 @@ Future<void> showPdfShellViewOptionsSheet(
                 ListTile(
                   key: const ValueKey('pdf-shell-author'),
                   leading: const Icon(Icons.person_outline),
-                  title: const Text('Default author…'),
+                  title: Text(tr('Default author…', 'المؤلف الافتراضي...')),
                   subtitle: Text(
                     authorName == null || authorName.trim().isEmpty
                         ? 'Not set'
@@ -1111,7 +1112,7 @@ Future<void> showPdfShellViewOptionsSheet(
                 ListTile(
                   key: const ValueKey('pdf-shell-shortcuts'),
                   leading: const Icon(Icons.keyboard_outlined),
-                  title: const Text('Keyboard shortcuts…'),
+                  title: Text(tr('Keyboard shortcuts…', 'اختصارات الكيبورد')),
                   onTap: () => _selectViewOption(
                     context,
                     _ViewOption.shortcuts,
@@ -1186,7 +1187,7 @@ class PdfShellViewOptionsButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return PopupMenuButton<_ViewOption>(
       key: const ValueKey('pdf-shell-view-options'),
-      tooltip: 'Settings',
+      tooltip: tr('Settings', 'الإعدادات'),
       icon: const Icon(Icons.display_settings_outlined),
       // match the bar's IconButtons; a PopupMenuButton icon otherwise
       // defaults to black87 instead of onSurfaceVariant
@@ -1209,27 +1210,27 @@ class PdfShellViewOptionsButton extends StatelessWidget {
           key: const ValueKey('pdf-shell-show-annotations'),
           value: _ViewOption.annotations,
           checked: preferences.showAnnotations,
-          child: const Text('Show annotations'),
+          child: Text(tr('Show annotations', 'إظهار التعليقات')),
         ),
         CheckedPopupMenuItem(
           key: const ValueKey('pdf-shell-highlight-forms'),
           value: _ViewOption.formHighlight,
           checked: preferences.highlightFormFields,
-          child: const Text('Highlight form fields'),
+          child: Text(tr('Highlight form fields', 'تمييز حقول النموذج')),
         ),
         if (reflow)
           CheckedPopupMenuItem(
             key: const ValueKey('pdf-shell-reflow-view'),
             value: _ViewOption.reflow,
             checked: preferences.showReflowView,
-            child: const Text('Reflow text'),
+            child: Text(tr('Reflow text', 'نص إعادة التدفق')),
           ),
         if (pageGrid)
           CheckedPopupMenuItem(
             key: const ValueKey('pdf-shell-page-grid'),
             value: _ViewOption.pageGrid,
             checked: preferences.showThumbnailView,
-            child: const Text('Page grid'),
+            child: Text(tr('Page grid', 'شبكة الصفحة')),
           ),
         if (pageColor)
           PopupMenuItem(
@@ -1246,7 +1247,7 @@ class PdfShellViewOptionsButton extends StatelessWidget {
                   borderRadius: BorderRadius.circular(6),
                 ),
               ),
-              title: const Text('Page color…'),
+              title: Text(tr('Page color…', 'لون الصفحة...')),
               trailing: Text(_hex(preferences.pageColor)),
               contentPadding: EdgeInsets.zero,
             ),
@@ -1257,7 +1258,7 @@ class PdfShellViewOptionsButton extends StatelessWidget {
             value: _ViewOption.author,
             child: ListTile(
               leading: const Icon(Icons.person_outline),
-              title: const Text('Default author…'),
+              title: Text(tr('Default author…', 'المؤلف الافتراضي...')),
               subtitle: Text(
                 authorName == null || authorName!.trim().isEmpty
                     ? 'Not set'
@@ -1267,12 +1268,12 @@ class PdfShellViewOptionsButton extends StatelessWidget {
             ),
           ),
         if (toolShortcuts != null && onToolShortcutsChanged != null)
-          const PopupMenuItem(
-            key: ValueKey('pdf-shell-shortcuts'),
+          PopupMenuItem(
+            key: const ValueKey('pdf-shell-shortcuts'),
             value: _ViewOption.shortcuts,
             child: ListTile(
-              leading: Icon(Icons.keyboard_outlined),
-              title: Text('Keyboard shortcuts…'),
+              leading: const Icon(Icons.keyboard_outlined),
+              title: Text(tr('Keyboard shortcuts…', 'اختصارات الكيبورد')),
               contentPadding: EdgeInsets.zero,
             ),
           ),
@@ -1319,7 +1320,7 @@ class PdfShellPanelSwitch extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(left: 4, right: 6),
             child: Text(
-              'Panels',
+              tr('Panels', 'لوحات'),
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: scheme.onSurfaceVariant,
                     letterSpacing: 0.5,

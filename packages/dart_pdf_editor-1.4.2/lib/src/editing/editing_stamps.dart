@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
+import 'package:dart_pdf_editor/src/editing/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:pdf_document/pdf_document.dart';
@@ -255,7 +256,7 @@ class PdfStampPickerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Stamps'),
+      title: Text(tr('Stamps', 'الأختام')),
       content: SizedBox(
         width: 340,
         child: ListenableBuilder(
@@ -287,12 +288,12 @@ class PdfStampPickerDialog extends StatelessWidget {
                             children: [
                               IconButton(
                                 icon: const Icon(Icons.edit_outlined),
-                                tooltip: 'Edit stamp',
+                                tooltip: tr('Edit stamp', 'تحرير الختم'),
                                 onPressed: () => _edit(context, stamp),
                               ),
                               IconButton(
                                 icon: const Icon(Icons.delete_outline),
-                                tooltip: 'Delete stamp',
+                                tooltip: tr('Delete stamp','حذف الختم'),
                                 onPressed: () =>
                                     controller.removeCustomStamp(stamp),
                               ),
@@ -329,11 +330,11 @@ class PdfStampPickerDialog extends StatelessWidget {
           ),
         TextButton(
           onPressed: () => _create(context),
-          child: const Text('New stamp…'),
+          child: Text(tr('New stamp…', 'ختم جديد...')),
         ),
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Close'),
+          child: Text(tr('Close', 'إغلاق')),
         ),
       ],
     );
@@ -369,7 +370,7 @@ class _StampDateTimeFormatControls extends StatelessWidget {
           child: DropdownButtonFormField<PdfStampDateFormat>(
             key: const ValueKey('pdf-stamp-date-format'),
             initialValue: controller.stampDateFormat,
-            decoration: const InputDecoration(labelText: 'Date format'),
+            decoration:  InputDecoration(labelText: tr('Date format', 'صيغة التاريخ')),
             items: [
               for (final format in PdfStampDateFormat.values)
                 DropdownMenuItem<PdfStampDateFormat>(
@@ -390,7 +391,7 @@ class _StampDateTimeFormatControls extends StatelessWidget {
           child: DropdownButtonFormField<PdfStampTimeFormat>(
             key: const ValueKey('pdf-stamp-time-format'),
             initialValue: controller.stampTimeFormat,
-            decoration: const InputDecoration(labelText: 'Time format'),
+            decoration: InputDecoration(labelText: tr('Time format', 'صيغة الوقت')),
             items: [
               for (final format in PdfStampTimeFormat.values)
                 DropdownMenuItem<PdfStampTimeFormat>(
@@ -464,7 +465,7 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
     final initial = widget.initial;
     final template = initial?.template ??
         PdfStampTemplate.text(
-          initial?.text ?? 'APPROVED',
+          initial?.text ?? tr('APPROVED', 'موافق عليه'),
           initial?.color ?? _inks.first,
         );
     _templateWidth = template.width;
@@ -476,7 +477,7 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
     _text = TextEditingController(
       text: selected?.type == PdfStampTemplateComponentType.text
           ? selected!.text
-          : initial?.text ?? 'APPROVED',
+          : initial?.text ?? tr('APPROVED', 'موافق عليه'),
     );
     _width = TextEditingController(text: _templateWidth.round().toString());
     _height = TextEditingController(text: _templateHeight.round().toString());
@@ -507,7 +508,7 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
         return component.text.trim();
       }
     }
-    return 'Custom stamp';
+    return tr('Custom stamp', 'ختم مخصص');
   }
 
   int get _primaryColor =>
@@ -783,7 +784,7 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
     final selected = _selectedComponent;
     final selectedIsText = selected?.type == PdfStampTemplateComponentType.text;
     return AlertDialog(
-      title: Text(widget.initial == null ? 'New stamp' : 'Edit stamp'),
+      title: Text(widget.initial == null ? tr('New stamp', 'ختم جديد') : tr('Edit stamp', 'تحرير الختم')),
       content: SizedBox(
         width: 340,
         child: SingleChildScrollView(
@@ -809,7 +810,7 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
                       key: const ValueKey('pdf-stamp-width'),
                       controller: _width,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Width'),
+                      decoration: InputDecoration(labelText: tr('Width', 'عرض')),
                       onSubmitted: (_) => _commitSize(),
                     ),
                   ),
@@ -820,7 +821,7 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
                       key: const ValueKey('pdf-stamp-height'),
                       controller: _height,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(labelText: 'Height'),
+                      decoration: InputDecoration(labelText: tr('Height', 'الطول')),
                       onSubmitted: (_) => _commitSize(),
                     ),
                   ),
@@ -840,8 +841,8 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
                         textCapitalization: TextCapitalization.characters,
                         decoration: InputDecoration(
                           labelText: selectedIsText
-                              ? 'Selected text'
-                              : 'Select text to edit',
+                              ? tr('Selected text', 'النص المحدد')
+                              : tr('Select text to edit', 'إختيار النص للتحرير'),
                         ),
                         onChanged: selectedIsText
                             ? (value) => _replaceSelected(
@@ -852,7 +853,7 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
                     const SizedBox(width: 8),
                     PopupMenuButton<String>(
                       key: const ValueKey('pdf-stamp-field-menu'),
-                      tooltip: 'Insert field',
+                      tooltip: tr('Insert field', 'إدراج حقل'),
                       enabled: selectedIsText && _fields.isNotEmpty,
                       icon: const Icon(Icons.data_object),
                       onSelected: _insertField,
@@ -868,7 +869,7 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
                     ),
                     PopupMenuButton<PdfStandardFont>(
                       key: const ValueKey('pdf-stamp-font-menu'),
-                      tooltip: 'Font',
+                      tooltip: pdfStrings.font,
                       enabled: selectedIsText,
                       icon: const Icon(Icons.font_download_outlined),
                       initialValue: selectedIsText ? selected!.font : null,
@@ -923,7 +924,7 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
                   ),
                 IconButton(
                   key: const ValueKey('pdf-stamp-color-custom'),
-                  tooltip: 'More colors…',
+                  tooltip: tr('More colors…', 'المزيد من الألوان'),
                   icon: const Icon(Icons.color_lens_outlined),
                   style: IconButton.styleFrom(
                     visualDensity: VisualDensity.compact,
@@ -942,37 +943,37 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
                     key: const ValueKey('pdf-stamp-add-text'),
                     onPressed: _addText,
                     icon: const Icon(Icons.title),
-                    label: const Text('Text'),
+                    label: Text(tr('Text', 'نص')),
                   ),
                   OutlinedButton.icon(
                     key: const ValueKey('pdf-stamp-add-box'),
                     onPressed: _addBox,
                     icon: const Icon(Icons.crop_square),
-                    label: const Text('Box'),
+                    label: Text(tr('Box','صندوق')),
                   ),
                   OutlinedButton.icon(
                     key: const ValueKey('pdf-stamp-add-circle'),
                     onPressed: _addCircle,
                     icon: const Icon(Icons.radio_button_unchecked),
-                    label: const Text('Circle'),
+                    label: Text(tr('Circle', 'دائرة')),
                   ),
                   OutlinedButton.icon(
                     key: const ValueKey('pdf-stamp-add-image'),
                     onPressed: widget.imagePicker == null ? null : _addImage,
                     icon: const Icon(Icons.image_outlined),
-                    label: const Text('Image'),
+                    label: Text(tr('Image', 'صورة')),
                   ),
                   OutlinedButton.icon(
                     key: const ValueKey('pdf-stamp-add-signature'),
                     onPressed: _addSignature,
                     icon: const Icon(Icons.draw),
-                    label: const Text('Signature'),
+                    label: Text(tr('Signature', 'توقيع')),
                   ),
                   IconButton(
                     key: const ValueKey('pdf-stamp-delete-component'),
                     onPressed: _components.length > 1 ? _deleteSelected : null,
                     icon: const Icon(Icons.delete_outline),
-                    tooltip: 'Delete selected component',
+                    tooltip: tr('Delete selected component', 'حذف العنصر المحدد'),
                   ),
                 ],
               ),
@@ -983,7 +984,7 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+          child: Text(tr('Cancel', 'إلغاء')),
         ),
         FilledButton(
           onPressed: _components.isEmpty
@@ -998,7 +999,7 @@ class _PdfStampEditorDialogState extends State<PdfStampEditorDialog> {
                     tags: initial?.tags ?? const [],
                   ));
                 },
-          child: const Text('Save'),
+          child: Text(tr('Save', 'حفظ')),
         ),
       ],
     );
@@ -1534,8 +1535,8 @@ String? _stampDetail(PdfCustomStamp stamp) {
 String _fontLabel(PdfStandardFont font) {
   final family = font.family.label;
   final style = [
-    if (font.isBold) 'Bold',
-    if (font.isItalic) 'Italic',
+    if (font.isBold) tr('Bold', 'غامق'),
+    if (font.isItalic) tr('Italic', 'مائل'),
   ].join(' ');
   return style.isEmpty ? family : '$family $style';
 }
@@ -1558,10 +1559,10 @@ List<String> _normalizeFields(Iterable<String> fields) {
 }
 
 String _fieldLabel(String field) => switch (field) {
-      'date' => 'Date',
-      'time' => 'Time',
-      'datetime' => 'Date & time',
-      'username' => 'Username',
+      'date' => tr('Date', 'تاريخ'),
+      'time' => tr('Time', 'الوقت'),
+      'datetime' => tr('Date & time', 'التاريخ والوقت'),
+      'username' => tr('Username', 'اسم المستخدم'),
       _ => field
           .split(RegExp(r'[_\s]+'))
           .where((part) => part.isNotEmpty)

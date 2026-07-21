@@ -1,11 +1,13 @@
 {
   "version": "0.2.0",
   "configurations": [
+    
     {
       "name": "Flutter (No Pub Get)",
       "request": "launch",
       "type": "dart",
       "flutterMode": "debug",
+      "program": "lib/main.dart",
       "args": ["--no-pub"]
     }
   ]
