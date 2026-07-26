@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:fatawa/data/models/fatwa_model.dart';
 import 'package:fatawa/data/repositories/fatwa_repository.dart';
 import 'package:fatawa/presentation/cubit/fatwa_cubit.dart';
 import 'package:fatawa/presentation/cubit/fatwa_loading_cubit.dart';
@@ -9,8 +10,6 @@ import 'package:dart_pdf_editor/dart_pdf_editor.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
-
-import '../../data/models/fatwa_model.dart';
 import '../../../core/theme/app_colors.dart';
 
 class FatwaPdfScreen extends StatefulWidget {
@@ -23,6 +22,11 @@ class FatwaPdfScreen extends StatefulWidget {
 }
 
 class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
+  // مراقبات حالة المشغل
+  StreamSubscription<PlayerState>? _playerStateSubscription;
+  StreamSubscription<void>? _playerCompletionSubscription;
+  StreamSubscription<int>? _durationSubscription;
+
   // ─── متحكمات الـ PDF والعرض ───────────────────────────────────
   late PdfEditingController? _pdfController;
   late PdfViewerController _viewerController; // متحكم منفصل للتحكم بالعرض
@@ -36,63 +40,48 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
   late PlayerController _playerController;
 
   bool _isRecordingMode = false;
-  bool _isRecording = false;
   bool _hasRecorded = false;
   bool _isPlaying = false;
   bool _isSaved = false;
   String? _audioFilePath;
+  int _currentDuration = 0; // لتتبع مكان النقطة الخضراء
 
-  @override
-  void initState() {
-    super.initState();
-    _recorderController = RecorderController();
-    _playerController = PlayerController();
-    _viewerController = PdfViewerController();
-    _viewerController.viewportChanges.addListener(
-      _updateZoomTextFromController,
-    ); // تهيئة متحكم العرض
-    _zoomTextController = TextEditingController();
-    _noteController = TextEditingController(
-      text: widget.fatwa.textAnswer ?? '',
-    );
+  // 1) في initState()
+@override
+void initState() {
+  super.initState();
+  _recorderController = RecorderController();
+  _playerController = PlayerController();
+  _initPlayerListeners();
 
-    _audioFilePath = widget.fatwa.localAudioPath;
-    _hasRecorded = (_audioFilePath != null && _audioFilePath!.isNotEmpty);
+  _checkExistingAudio();
+  _viewerController = PdfViewerController();
+  _viewerController.viewportChanges.addListener(_updateZoomTextFromController);
+  _zoomTextController = TextEditingController();
+  _noteController = TextEditingController(text: widget.fatwa.textAnswer ?? '');
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _loadPdf();
-      if (_hasRecorded) {
-        _prepareSavedAudio();
-      }
-    });
-  }
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    _loadPdf();
+  });
+}
 
-  Future<void> _prepareSavedAudio() async {
-    try {
-      if (_audioFilePath == null) return;
 
-      final file = File(_audioFilePath!);
-      if (await file.exists()) {
-        await _playerController.preparePlayer(
-          path: _audioFilePath!,
-          shouldExtractWaveform: true,
-        );
+  Future<void> _checkExistingAudio() async {
+    final savedPath = widget.fatwa.localAudioPath;
 
-        if (mounted) {
-          setState(() {});
+    if (savedPath != null && savedPath.isNotEmpty) {
+      _audioFilePath = savedPath;
+      _hasRecorded = true;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (mounted && _audioFilePath != null) {
+          await _playerController.preparePlayer(
+            path: _audioFilePath!,
+            shouldExtractWaveform: true,
+          );
+
+          if (mounted) setState(() {});
         }
-      } else {
-        setState(() {
-          _hasRecorded = false;
-          _audioFilePath = null;
-        });
-
-        widget.fatwa.localAudioPath = null;
-        widget.fatwa.save();
-      }
-    } catch (e) {
-      setState(() {
-        _hasRecorded = false;
       });
     }
   }
@@ -162,91 +151,156 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
     }
   }
 
-  void _initAudioControllers() {
-    _recorderController = RecorderController();
-    _playerController = PlayerController();
+  Future<void> _startRecording() async {
+    try {
+      final hasPermission = await _recorderController.checkPermission();
+      if (!hasPermission) return;
 
-    _playerController.onPlayerStateChanged.listen((state) {
+      final dir = await getApplicationDocumentsDirectory();
+      _audioFilePath =
+          '${dir.path}/fatwa_audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
+
+      await _recorderController.record(path: _audioFilePath);
+      setState(() => _isRecordingMode = true);
+    } catch (e) {
+      print('خطأ في بدء التسجيل: $e');
+    }
+  }
+
+  // 5) عدّل _stopRecording() بهذا الشكل
+Future<void> _stopRecording() async {
+  try {
+    final tempPath = await _recorderController.stop();
+
+    if (tempPath != null && tempPath.isNotEmpty) {
+      widget.fatwa.localAudioPath = tempPath;
+      context.read<FatwaCubit>().updateFatawa(widget.fatwa);
+
       if (mounted) {
         setState(() {
-          _isPlaying = state == PlayerState.playing;
+          _audioFilePath = tempPath;
+          _isRecordingMode = false;
+          _hasRecorded = true;
+          _currentDuration = 0;
+          _isPlaying = false;
         });
       }
-    });
 
-    _playerController.onCompletion.listen((_) {
+      
+
+      await _playerController.preparePlayer(
+        path: tempPath,
+        shouldExtractWaveform: true,
+      );
+
       if (mounted) {
-        setState(() => _isPlaying = false);
+        setState(() {
+        });
       }
-    });
-  }
+    }
+  } catch (e, s) {
+    debugPrint('Error stopping recording: $e');
+    debugPrintStack(stackTrace: s);
 
-  Future<void> _startRecording() async {
-    final hasPermission = await _recorderController.checkPermission();
-    if (!hasPermission) return;
-
-    final dir = await getApplicationDocumentsDirectory();
-    _audioFilePath =
-        '${dir.path}/fatwa_audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
-
-    await _recorderController.record(path: _audioFilePath);
-    setState(() => _isRecording = true);
-  }
-
-  Future<void> _stopRecording() async {
-    try {
-      final tempPath = await _recorderController.stop();
-      if (tempPath != null && tempPath.isNotEmpty) {
-        final directory = await getApplicationDocumentsDirectory();
-
-        final permanentPath =
-            '${directory.path}/fatwa_${DateTime.now().millisecondsSinceEpoch}.m4a';
-
-        await File(tempPath).copy(permanentPath);
-        await _playerController.preparePlayer(
-          path: permanentPath,
-          shouldExtractWaveform: true,
-        );
-        widget.fatwa.localAudioPath = permanentPath;
-        widget.fatwa.save();
-
-        if (mounted) {
-          setState(() {
-            _isRecordingMode = false;
-            _hasRecorded = true;
-            _audioFilePath = permanentPath;
-          });
-        }
-      }
-    } catch (e) {
-      debugPrint('$e');
+    if (mounted) {
       setState(() {
         _isRecordingMode = false;
       });
     }
   }
+}
 
-  void _deleteRecording() {
-    setState(() {
-      _hasRecorded = false;
-      _audioFilePath = null;
-    });
-    _playerController.stopPlayer();
-  }
+
+  // 4) استبدل _deleteRecording()
+Future<void> _deleteRecording() async {
+  await _resetPlayerController();
+
+  widget.fatwa.localAudioPath = null;
+  context.read<FatwaCubit>().updateFatawa(widget.fatwa);
+
+  if (!mounted) return;
+  setState(() {
+    _hasRecorded = false;
+    _audioFilePath = null;
+    _currentDuration = 0;
+    _isPlaying = false;
+    _isSaved = false;
+  });
+}
+
 
   Future<void> _togglePlayPause() async {
-    if (_playerController == null) return;
-
     try {
       if (_playerController.playerState == PlayerState.playing) {
         await _playerController.pausePlayer();
       } else {
+        if (_playerController.playerState == PlayerState.stopped &&
+            _audioFilePath != null) {
+          await _playerController.preparePlayer(
+            path: _audioFilePath!,
+            shouldExtractWaveform: false,
+          );
+        }
         await _playerController.startPlayer();
       }
-
-      if (mounted) setState(() {});
-    } catch (e) {}
+    } catch (e) {
+      debugPrint('خطأ في تشغيل الصوت: $e');
+    }
   }
+
+  // 2) أضف هذه الدالة داخل الـ State
+void _initPlayerListeners() {
+  _playerStateSubscription = _playerController.onPlayerStateChanged.listen((state) {
+    if (!mounted) return;
+    setState(() {
+      _isPlaying = state == PlayerState.playing;
+    });
+  });
+
+  _playerCompletionSubscription = _playerController.onCompletion.listen((_) async {
+    if (!mounted) return;
+    setState(() {
+      _isPlaying = false;
+      _currentDuration = 0;
+    });
+
+    try {
+      await _playerController.seekTo(0);
+    } catch (_) {}
+  });
+
+  _durationSubscription = _playerController.onCurrentDurationChanged.listen((duration) {
+    if (mounted && _playerController.playerState == PlayerState.playing) {
+      setState(() {
+        _currentDuration = duration;
+      });
+    }
+  });
+}
+
+  // 3) أضف هذه الدالة لإعادة ضبط المشغل بعد الحذف
+Future<void> _resetPlayerController() async {
+  try {
+    await _playerController.stopPlayer();
+  } catch (_) {}
+
+  try {
+    _playerController.release();
+  } catch (_) {}
+
+  await _playerStateSubscription?.cancel();
+  await _playerCompletionSubscription?.cancel();
+  await _durationSubscription?.cancel();
+
+  _playerStateSubscription = null;
+  _playerCompletionSubscription = null;
+  _durationSubscription = null;
+
+  _playerController.dispose();
+  _playerController = PlayerController();
+  _initPlayerListeners();
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -277,7 +331,9 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
               if (_isRecordingMode) {
                 await _recorderController.stop();
               }
-              await _playerController.stopPlayer();
+              if (_playerController.playerState == PlayerState.playing) {
+                await _playerController.stopPlayer();
+              }
             } catch (e) {}
 
             if (context.mounted) {
@@ -426,7 +482,7 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
     });
 
     final currentText = _noteController.text;
-    final currentAudioPath = _audioFilePath;
+    final currentAudioPath = widget.fatwa.localAudioPath ?? _audioFilePath;
     Uint8List? finalPdfBytes;
 
     try {
@@ -520,6 +576,10 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
           Expanded(
             child: TextField(
               controller: _noteController,
+              onChanged: (text) {
+                widget.fatwa.textAnswer = text;
+                context.read<FatwaCubit>().updateFatawa(widget.fatwa);
+              },
               minLines: 1,
               maxLines: 4,
               decoration: InputDecoration(
@@ -541,92 +601,173 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
   Widget _buildAudioBar(bool isDark) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        children: [
-          // ----------------------------------------------------
-          // الحالة الأولى: جاري التسجيل (زر إيقاف + موجات حية)
-          // ----------------------------------------------------
-          if (_isRecordingMode) ...[
-            // زر الإيقاف الأحمر
-            Padding(
-              padding: const EdgeInsets.only(right: 4.0),
-              child: CircleAvatar(
-                backgroundColor: Colors.red,
-                child: IconButton(
-                  icon: const Icon(Icons.stop, color: Colors.white),
-                  onPressed: _stopRecording,
+      child: Directionality(
+        textDirection: TextDirection.ltr,
+        child: Row(
+          children: [
+            // ----------------------------------------------------
+            // الحالة الأولى: جاري التسجيل (زر إيقاف + موجات حية)
+            // ----------------------------------------------------
+            if (_isRecordingMode) ...[
+              // زر الإيقاف الأحمر
+              Padding(
+                padding: const EdgeInsets.only(right: 4.0),
+                child: CircleAvatar(
+                  backgroundColor: Colors.red,
+                  child: IconButton(
+                    icon: const Icon(Icons.stop, color: Colors.white),
+                    onPressed: _stopRecording,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(width: 8),
+              const SizedBox(width: 8),
 
-            // موجات التسجيل الحية (من الكود الخاص بك)
-            Expanded(
-              child: AudioWaveforms(
-                size: const Size(double.infinity, 40),
-                recorderController: _recorderController,
-                waveStyle: const WaveStyle(
-                  waveColor: Colors.red,
-                  extendWaveform: true,
-                  showMiddleLine: false,
-                  spacing: 6,
+              // موجات التسجيل الحية (من الكود الخاص بك)
+              Expanded(
+                child: AudioWaveforms(
+                  size: const Size(double.infinity, 40),
+                  recorderController: _recorderController,
+                  waveStyle: const WaveStyle(
+                    waveColor: Colors.red,
+                    extendWaveform: true,
+                    showMiddleLine: false,
+                    spacing: 6,
+                  ),
                 ),
               ),
-            ),
-          ]
-          // ----------------------------------------------------
-          // الحالة الثانية: تم التسجيل (زر تشغيل + موجات محفوظة + سلة مهملات)
-          // ----------------------------------------------------
-          else if (_hasRecorded) ...[
-            // زر التشغيل والإيقاف المؤقت (من الكود الخاص بك)
-            IconButton(
-              onPressed: _togglePlayPause,
-              icon: Icon(
-                _isPlaying ? Icons.pause : Icons.play_arrow,
-                color: AppColors.primaryGreen, // أو اللون الذي تفضله
-              ),
-            ),
-
-            // موجات قراءة الصوت المحفوظ (من الكود الخاص بك)
-            Expanded(
-              child: AudioFileWaveforms(
-                size: const Size(double.infinity, 40),
-                playerController:
-                    _playerController, // تأكد من وجود علامة ! إذا كان المتغير nullable
-                waveformType: WaveformType.fitWidth,
-                playerWaveStyle: const PlayerWaveStyle(
-                  fixedWaveColor: Colors.grey,
-                  liveWaveColor: Colors.blue,
-                  spacing: 6,
+            ]
+            // ----------------------------------------------------
+            // الحالة الثانية: تم التسجيل
+            // ----------------------------------------------------
+            else if (_hasRecorded) ...[
+              IconButton(
+                onPressed: _togglePlayPause,
+                icon: Icon(
+                  _isPlaying ? Icons.pause : Icons.play_arrow,
+                  color: AppColors.primaryGreen,
                 ),
               ),
-            ),
 
-            // زر الحذف (ضروري ليتمكن المستخدم من مسح الصوت وإعادة التسجيل)
-            IconButton(
-              icon: const Icon(Icons.delete, color: Colors.red),
-              onPressed: _deleteRecording,
-            ),
+              // منطقة الصوت والنقطة الخضراء
+              Expanded(
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final double width = constraints.maxWidth;
+                    final double maxDur = _playerController.maxDuration > 0
+                        ? _playerController.maxDuration.toDouble()
+                        : 1.0;
+                    final double currentVal = _currentDuration.toDouble().clamp(
+                      0.0,
+                      maxDur,
+                    );
+
+                    return SizedBox(
+                      width: width,
+                      height: 40,
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          // 1. الذبذبات
+                          AudioFileWaveforms(
+                            key: ValueKey(_audioFilePath),
+                            size: Size(width, 40),
+                            playerController: _playerController,
+                            enableSeekGesture: false,
+                            waveformType: WaveformType.fitWidth,
+                            playerWaveStyle: PlayerWaveStyle(
+                              fixedWaveColor: Colors.grey.shade400,
+                              liveWaveColor: Colors.grey.shade400,
+                              spacing: 5,
+                              showSeekLine: false,
+                            ),
+                          ),
+
+                          // 2. النقطة الخضراء
+                          SliderTheme(
+                            data: SliderTheme.of(context).copyWith(
+                              trackShape: CustomTrackShape(),
+                              trackHeight: 40,
+                              activeTrackColor: Colors.transparent,
+                              inactiveTrackColor: Colors.transparent,
+                              thumbColor: const Color(0xFF00B09B),
+                              thumbShape: const RoundSliderThumbShape(
+                                enabledThumbRadius: 8,
+                              ),
+                              overlayShape: SliderComponentShape.noOverlay,
+                            ),
+                            child: Slider(
+                              min: 0.0,
+                              max: maxDur,
+                              value: currentVal,
+                              onChangeStart: (value) {
+                                if (_isPlaying) _playerController.pausePlayer();
+                              },
+                              onChanged: (value) {
+                                setState(() {
+                                  _currentDuration = value.toInt();
+                                });
+                                _playerController.seekTo(value.toInt());
+                              },
+                              onChangeEnd: (value) async {
+                                await _playerController.seekTo(value.toInt());
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              IconButton(
+                icon: const Icon(Icons.delete, color: Colors.red),
+                onPressed: _deleteRecording,
+              ),
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
 
+// 7) وفي dispose() كما هو، لكن تأكد من بقاء الإلغاء قبل dispose()
+@override
+void dispose() {
+  _playerStateSubscription?.cancel();
+  _playerCompletionSubscription?.cancel();
+  _durationSubscription?.cancel();
+
+  _viewerController.viewportChanges.removeListener(_updateZoomTextFromController);
+
+  _viewerController.dispose();
+  _pdfController?.dispose();
+  _zoomTextController.dispose();
+  _noteController.dispose();
+
+  _recorderController.dispose();
+  _playerController.dispose();
+
+  super.dispose();
+}
+
+}
+
+class CustomTrackShape extends RoundedRectSliderTrackShape {
   @override
-  void dispose() {
-    _viewerController.viewportChanges.removeListener(
-      _updateZoomTextFromController,
-    );
-
-    _viewerController.dispose();
-    _pdfController?.dispose();
-    _zoomTextController.dispose();
-    _noteController.dispose();
-
-    _recorderController.dispose();
-    _playerController.dispose();
-
-    super.dispose();
+  Rect getPreferredRect({
+    required RenderBox parentBox,
+    Offset offset = Offset.zero,
+    required SliderThemeData sliderTheme,
+    bool isEnabled = false,
+    bool isDiscrete = false,
+  }) {
+    final double trackHeight = sliderTheme.trackHeight ?? 2.0;
+    final double trackLeft = offset.dx;
+    final double trackTop =
+        offset.dy + (parentBox.size.height - trackHeight) / 2;
+    final double trackWidth =
+        parentBox.size.width; // نأخذ العرض بالكامل ليتطابق مع الذبذبات
+    return Rect.fromLTWH(trackLeft, trackTop, trackWidth, trackHeight);
   }
 }

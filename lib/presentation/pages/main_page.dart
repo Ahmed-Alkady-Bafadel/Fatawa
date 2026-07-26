@@ -11,10 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import '../../core/theme/app_colors.dart';
 
 class MainPage extends StatelessWidget {
-   MainPage({super.key});
-
-
-        
+   MainPage({super.key});        
     
   
   @override

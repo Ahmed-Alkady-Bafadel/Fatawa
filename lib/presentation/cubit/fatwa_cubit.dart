@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:fatawa/presentation/cubit/fatwa_state.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:hive/hive.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../data/models/fatwa_model.dart';
 import '../../data/repositories/fatwa_repository.dart';
@@ -66,6 +67,21 @@ class FatwaCubit extends Cubit<FatwaState> {
         pdfUrl: 'assets/files/1-8.pdf', // هنا مربط الفرس!
       ),
     ];
+
+    final box = Hive.box<FatwaModel>('fatwas_box');
+    List<FatwaModel> finalFatwasToDisplay = [];
+
+    for (FatwaModel mockFatwa in _cachedFatwas) {
+      final savedFatwa = box.get(mockFatwa.pdfUrl);
+      if (savedFatwa != null) {
+        finalFatwasToDisplay.add(savedFatwa);
+      } else {
+        box.put(mockFatwa.pdfUrl, mockFatwa);
+        finalFatwasToDisplay.add(mockFatwa);
+      }
+    }
+
+    _cachedFatwas = finalFatwasToDisplay;
     emit(FatwaLoaded(_cachedFatwas)); // عرض الفتاوى في الشاشة
   }
 
@@ -78,13 +94,18 @@ class FatwaCubit extends Cubit<FatwaState> {
     loadFatwas();
   }
 
-  void updateFatawa(FatwaModel updateFatwa) {
+  void updateFatawa(FatwaModel updateFatwa) async {
     final index = _cachedFatwas.indexWhere(
       (f) => f.pdfUrl == updateFatwa.pdfUrl,
     );
     if (index != -1) {
       _cachedFatwas[index] = updateFatwa;
       emit(FatwaLoaded(List.from(_cachedFatwas)));
+      try {
+        await repository.saveFatwaDraft(updateFatwa);
+      } catch (e) {
+        print('حدث خطأ أثناء الحفظ في قاعدة البيانات: $e');
+      }
     }
   }
 }
