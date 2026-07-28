@@ -8,6 +8,7 @@ import 'package:fatawa/presentation/cubit/fatwa_loading_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:dart_pdf_editor/dart_pdf_editor.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
 import '../../../core/theme/app_colors.dart';
@@ -28,7 +29,7 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
   StreamSubscription<int>? _durationSubscription;
 
   // ─── متحكمات الـ PDF والعرض ───────────────────────────────────
-  late PdfEditingController? _pdfController;
+  PdfEditingController? _pdfController;
   late PdfViewerController _viewerController; // متحكم منفصل للتحكم بالعرض
   late TextEditingController _zoomTextController;
   final Completer<void> _viewportReady = Completer<void>();
@@ -47,24 +48,27 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
   int _currentDuration = 0; // لتتبع مكان النقطة الخضراء
 
   // 1) في initState()
-@override
-void initState() {
-  super.initState();
-  _recorderController = RecorderController();
-  _playerController = PlayerController();
-  _initPlayerListeners();
+  @override
+  void initState() {
+    super.initState();
+    _recorderController = RecorderController();
+    _playerController = PlayerController();
+    _initPlayerListeners();
 
-  _checkExistingAudio();
-  _viewerController = PdfViewerController();
-  _viewerController.viewportChanges.addListener(_updateZoomTextFromController);
-  _zoomTextController = TextEditingController();
-  _noteController = TextEditingController(text: widget.fatwa.textAnswer ?? '');
+    _checkExistingAudio();
+    _viewerController = PdfViewerController();
+    _viewerController.viewportChanges.addListener(
+      _updateZoomTextFromController,
+    );
+    _zoomTextController = TextEditingController();
+    _noteController = TextEditingController(
+      text: widget.fatwa.textAnswer ?? '',
+    );
 
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    _loadPdf();
-  });
-}
-
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadPdf();
+    });
+  }
 
   Future<void> _checkExistingAudio() async {
     final savedPath = widget.fatwa.localAudioPath;
@@ -88,28 +92,45 @@ void initState() {
 
   Future<void> _loadPdf() async {
     try {
-      if (widget.fatwa.localPdfPath != null) {
+      Uint8List? bytes;
+
+      // 1. المحاولة الأولى: قراءة الملف من المسار المحلي إن وجد
+      if (widget.fatwa.localPdfPath != null &&
+          widget.fatwa.localPdfPath!.isNotEmpty) {
         final file = File(widget.fatwa.localPdfPath!);
         if (await file.exists()) {
-          final bytes = await file.readAsBytes();
-
-          if (bytes.isNotEmpty) {
-            _pdfController = PdfEditingController(bytes);
-          }
-          // _totalPages = _pdfController!.document?.pageCount ?? 1;
-          setState(() {
-            _isLoadingPdf = false;
-          });
-          await _viewportReady.future;
-
-          _updateZoomTextFromController();
+          bytes = await file.readAsBytes();
         }
       }
-      // إذا لم يوجد ملف PDF، نقوم بإنشاء مستند فارغ لتجنب الانهيار
+
+      // 2. المحاولة الثانية: إذا لم يوجد محلياً، نقرأ من الـ pdfUrl (سواء assets أو رابط)
+      if ((bytes == null || bytes.isEmpty) && widget.fatwa.pdfUrl.isNotEmpty) {
+        if (widget.fatwa.pdfUrl.startsWith('assets/')) {
+          // الطريقة الصحيحة لقراءة ملفات الـ Assets في فلاتر
+          final byteData = await rootBundle.load(widget.fatwa.pdfUrl);
+          bytes = byteData.buffer.asUint8List();
+        } else {
+          // مستقبلاً لو كان رابطاً حقيقياً من الإنترنت
+          // final file = File(widget.fatwa.pdfUrl);
+          // if (await file.exists()) bytes = await file.readAsBytes();
+        }
+      }
+
+      // 3. بناء المتحكم إذا توفرت البايتات بنجاح
+      if (bytes != null && bytes.isNotEmpty) {
+        _pdfController = PdfEditingController(bytes);
+      }
+
       setState(() {
         _isLoadingPdf = false;
       });
+
+      if (_pdfController != null) {
+        await _viewportReady.future;
+        _updateZoomTextFromController();
+      }
     } catch (e) {
+      print('Error loading PDF: $e');
       setState(() {
         _isLoadingPdf = false;
       });
@@ -168,66 +189,64 @@ void initState() {
   }
 
   // 5) عدّل _stopRecording() بهذا الشكل
-Future<void> _stopRecording() async {
-  try {
-    final tempPath = await _recorderController.stop();
+  Future<void> _stopRecording() async {
+    try {
+      final tempPath = await _recorderController.stop();
 
-    if (tempPath != null && tempPath.isNotEmpty) {
-      widget.fatwa.localAudioPath = tempPath;
-      context.read<FatwaCubit>().updateFatawa(widget.fatwa);
+      if (tempPath != null && tempPath.isNotEmpty) {
+        final updateFatws = widget.fatwa.copyWith(localAudioPath: tempPath);
+
+        widget.fatwa.localAudioPath = tempPath;
+        context.read<FatwaCubit>().repository.localDataSource.updateFatwa(
+          updateFatws,
+        );
+
+        if (mounted) {
+          setState(() {
+            _audioFilePath = tempPath;
+            _isRecordingMode = false;
+            _hasRecorded = true;
+            _currentDuration = 0;
+            _isPlaying = false;
+          });
+        }
+
+        await _playerController.preparePlayer(
+          path: tempPath,
+          shouldExtractWaveform: true,
+        );
+
+        if (mounted) {
+          setState(() {});
+        }
+      }
+    } catch (e, s) {
+      debugPrint('Error stopping recording: $e');
+      debugPrintStack(stackTrace: s);
 
       if (mounted) {
         setState(() {
-          _audioFilePath = tempPath;
           _isRecordingMode = false;
-          _hasRecorded = true;
-          _currentDuration = 0;
-          _isPlaying = false;
         });
       }
-
-      
-
-      await _playerController.preparePlayer(
-        path: tempPath,
-        shouldExtractWaveform: true,
-      );
-
-      if (mounted) {
-        setState(() {
-        });
-      }
-    }
-  } catch (e, s) {
-    debugPrint('Error stopping recording: $e');
-    debugPrintStack(stackTrace: s);
-
-    if (mounted) {
-      setState(() {
-        _isRecordingMode = false;
-      });
     }
   }
-}
-
 
   // 4) استبدل _deleteRecording()
-Future<void> _deleteRecording() async {
-  await _resetPlayerController();
+  Future<void> _deleteRecording() async {
+    await _resetPlayerController();
 
-  widget.fatwa.localAudioPath = null;
-  context.read<FatwaCubit>().updateFatawa(widget.fatwa);
+    widget.fatwa.localAudioPath = null;
 
-  if (!mounted) return;
-  setState(() {
-    _hasRecorded = false;
-    _audioFilePath = null;
-    _currentDuration = 0;
-    _isPlaying = false;
-    _isSaved = false;
-  });
-}
-
+    if (!mounted) return;
+    setState(() {
+      _hasRecorded = false;
+      _audioFilePath = null;
+      _currentDuration = 0;
+      _isPlaying = false;
+      _isSaved = false;
+    });
+  }
 
   Future<void> _togglePlayPause() async {
     try {
@@ -249,58 +268,63 @@ Future<void> _deleteRecording() async {
   }
 
   // 2) أضف هذه الدالة داخل الـ State
-void _initPlayerListeners() {
-  _playerStateSubscription = _playerController.onPlayerStateChanged.listen((state) {
-    if (!mounted) return;
-    setState(() {
-      _isPlaying = state == PlayerState.playing;
-    });
-  });
-
-  _playerCompletionSubscription = _playerController.onCompletion.listen((_) async {
-    if (!mounted) return;
-    setState(() {
-      _isPlaying = false;
-      _currentDuration = 0;
-    });
-
-    try {
-      await _playerController.seekTo(0);
-    } catch (_) {}
-  });
-
-  _durationSubscription = _playerController.onCurrentDurationChanged.listen((duration) {
-    if (mounted && _playerController.playerState == PlayerState.playing) {
+  void _initPlayerListeners() {
+    _playerStateSubscription = _playerController.onPlayerStateChanged.listen((
+      state,
+    ) {
+      if (!mounted) return;
       setState(() {
-        _currentDuration = duration;
+        _isPlaying = state == PlayerState.playing;
       });
-    }
-  });
-}
+    });
+
+    _playerCompletionSubscription = _playerController.onCompletion.listen((
+      _,
+    ) async {
+      if (!mounted) return;
+      setState(() {
+        _isPlaying = false;
+        _currentDuration = 0;
+      });
+
+      try {
+        await _playerController.seekTo(0);
+      } catch (_) {}
+    });
+
+    _durationSubscription = _playerController.onCurrentDurationChanged.listen((
+      duration,
+    ) {
+      if (mounted && _playerController.playerState == PlayerState.playing) {
+        setState(() {
+          _currentDuration = duration;
+        });
+      }
+    });
+  }
 
   // 3) أضف هذه الدالة لإعادة ضبط المشغل بعد الحذف
-Future<void> _resetPlayerController() async {
-  try {
-    await _playerController.stopPlayer();
-  } catch (_) {}
+  Future<void> _resetPlayerController() async {
+    try {
+      await _playerController.stopPlayer();
+    } catch (_) {}
 
-  try {
-    _playerController.release();
-  } catch (_) {}
+    try {
+      _playerController.release();
+    } catch (_) {}
 
-  await _playerStateSubscription?.cancel();
-  await _playerCompletionSubscription?.cancel();
-  await _durationSubscription?.cancel();
+    await _playerStateSubscription?.cancel();
+    await _playerCompletionSubscription?.cancel();
+    await _durationSubscription?.cancel();
 
-  _playerStateSubscription = null;
-  _playerCompletionSubscription = null;
-  _durationSubscription = null;
+    _playerStateSubscription = null;
+    _playerCompletionSubscription = null;
+    _durationSubscription = null;
 
-  _playerController.dispose();
-  _playerController = PlayerController();
-  _initPlayerListeners();
-}
-
+    _playerController.dispose();
+    _playerController = PlayerController();
+    _initPlayerListeners();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -357,8 +381,9 @@ Future<void> _resetPlayerController() async {
                         borderRadius: BorderRadius.circular(20),
                       ),
                     ),
-                    onPressed: () {
-                      _submitFinalAnswer();
+                    onPressed: () async{
+                      await _showSendConfirmationDialog(context);
+
                       Navigator.of(context).pop();
                     },
                     icon: const Icon(Icons.send, size: 18),
@@ -493,31 +518,17 @@ Future<void> _resetPlayerController() async {
       } else {
         throw Exception('متحكم الـ PDF غير مهيأ');
       }
-    } catch (e) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('فشل تجهيز الـ PDF: $e')));
-      setState(() {
-        _isSaved = false;
-      });
-      return;
-    }
 
-    if (mounted) {
       final updatedModel = widget.fatwa.copyWith(
         textAnswer: currentText,
         localAudioPath: currentAudioPath,
       );
-
-      context.read<FatwaCubit>().updateFatawa(updatedModel);
-
-      context.read<FatwaLoadingCubit>().saveDraft(
-        originalFatwa: widget.fatwa,
-        textAnswer: currentText,
-        audioPath: currentAudioPath,
-        editedPdfBytes: finalPdfBytes, // ✅ الآن يحمل البايتات الصحيحة
-      );
-    }
+      if (mounted) {
+        context.read<FatwaCubit>().repository.localDataSource.updateFatwa(
+          updatedModel,
+        );
+      }
+    } catch (e) {}
   }
 
   Future<void> _submitFinalAnswer() async {
@@ -558,6 +569,75 @@ Future<void> _resetPlayerController() async {
     }
   }
 
+  // دالة إظهار مربع حوار التأكيد
+  Future<void> _showSendConfirmationDialog(BuildContext context) async {
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: false,
+    builder: (BuildContext dialogContext) {
+      return Directionality(
+        textDirection: TextDirection.rtl, // لضمان ظهور العناصر من اليمين لليسار
+        child: AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20), // حواف دائرية ناعمة
+          ),
+          icon: const Icon(
+            Icons.warning_rounded,
+            color: Colors.orangeAccent,
+            size: 40,
+          ),
+          title: const Text(
+            'تأكيد الإرسال',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+          ),
+          content: const Text(
+            'هل أنت متأكد أنك تريد إرسال هذه الفتوى والاعتماد النهائي؟.',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 16, height: 1.5),
+          ),
+          actionsAlignment: MainAxisAlignment.spaceEvenly,
+          actions: <Widget>[
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.grey.shade700,
+                side: BorderSide(color: Colors.grey.shade300),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text('إلغاء'),
+            ),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.blue.shade700,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              ),
+              onPressed: () async {
+                Navigator.of(dialogContext).pop(); // إغلاق الديالوج
+                if (mounted) {
+                  await _submitFinalAnswer(); // استدعاء دالة الإرسال
+                }
+              },
+              child: const Text('تأكيد وإرسال'),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+
+
+
   Widget _buildTextBar(bool isDark) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -578,7 +658,11 @@ Future<void> _resetPlayerController() async {
               controller: _noteController,
               onChanged: (text) {
                 widget.fatwa.textAnswer = text;
-                context.read<FatwaCubit>().updateFatawa(widget.fatwa);
+                context
+                    .read<FatwaCubit>()
+                    .repository
+                    .localDataSource
+                    .updateFatwa(widget.fatwa);
               },
               minLines: 1,
               maxLines: 4,
@@ -731,26 +815,27 @@ Future<void> _resetPlayerController() async {
     );
   }
 
-// 7) وفي dispose() كما هو، لكن تأكد من بقاء الإلغاء قبل dispose()
-@override
-void dispose() {
-  _playerStateSubscription?.cancel();
-  _playerCompletionSubscription?.cancel();
-  _durationSubscription?.cancel();
+  // 7) وفي dispose() كما هو، لكن تأكد من بقاء الإلغاء قبل dispose()
+  @override
+  void dispose() {
+    _playerStateSubscription?.cancel();
+    _playerCompletionSubscription?.cancel();
+    _durationSubscription?.cancel();
 
-  _viewerController.viewportChanges.removeListener(_updateZoomTextFromController);
+    _viewerController.viewportChanges.removeListener(
+      _updateZoomTextFromController,
+    );
 
-  _viewerController.dispose();
-  _pdfController?.dispose();
-  _zoomTextController.dispose();
-  _noteController.dispose();
+    _viewerController.dispose();
+    _pdfController?.dispose();
+    _zoomTextController.dispose();
+    _noteController.dispose();
 
-  _recorderController.dispose();
-  _playerController.dispose();
+    _recorderController.dispose();
+    _playerController.dispose();
 
-  super.dispose();
-}
-
+    super.dispose();
+  }
 }
 
 class CustomTrackShape extends RoundedRectSliderTrackShape {

@@ -14,6 +14,10 @@ class FatwaLocalDataSource {
     return _box.values.where((fatwa) => fatwa.isAnswered == true).toList();
   }
 
+List<FatwaModel> getAllFatwas() {
+    return _box.values.toList();
+  }
+
   Future<void> saveFatwas(List<FatwaModel> fatwas) async {
     final Map<dynamic, FatwaModel> fatwasMap = {
       for (var f in fatwas) f.pdfUrl: f 

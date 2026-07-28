@@ -1,10 +1,9 @@
 import 'dart:io';
 import 'dart:typed_data';
-import 'package:fatawa/data/models/fatwa_model.dart';
-import 'package:fatawa/data/repositories/fatwa_repository.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:path_provider/path_provider.dart';
-
+import 'package:fatawa/data/models/fatwa_model.dart';
+import 'package:fatawa/data/repositories/fatwa_repository.dart';
 
 part 'fatwa_loading_state.dart';
 
@@ -13,7 +12,7 @@ class FatwaLoadingCubit extends Cubit<FatwaLoadingState> {
 
   FatwaLoadingCubit({required this.repository}) : super(FatwaLoadingInitial());
 
-  Future<void> submitFatwa({
+  Future<void>  submitFatwa({
     required FatwaModel originalFatwa,
     String? textAnswer,
     String? audioPath,
@@ -26,7 +25,7 @@ class FatwaLoadingCubit extends Cubit<FatwaLoadingState> {
         textAnswer: textAnswer,
         localAudioPath: audioPath,
         localPdfPath: finalLocalPdfPath,
-        isAnswered: true, // مهم: تحويلها إلى مجاب عليها للرفع
+        isAnswered: true, 
       );
 
       await repository.submitFatwaAnswerLocally(answeredFatwa);
@@ -49,7 +48,7 @@ class FatwaLoadingCubit extends Cubit<FatwaLoadingState> {
         textAnswer: textAnswer,
         localAudioPath: audioPath,
         localPdfPath: finalLocalPdfPath,
-        isAnswered: false, // مهم: إبقاؤها كمسودة لمنع رفعها
+        isAnswered: false, 
       );
 
       await repository.saveFatwaDraft(draftFatwa);

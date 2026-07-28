@@ -14,12 +14,18 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
+  // التأكد من تهيئة بيئة فلاتر قبل تشغيل أي شيء غير متزامن (async)
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // تهيئة قواعد البيانات المحلية (Hive)
   await Hive.initFlutter();
   Hive.registerAdapter(FatwaModelAdapter());
   await Hive.openBox<FatwaModel>('fatwas_box');
+  
+  // تهيئة الاتصال بالشبكة
   DioHelper.init();
 
+  // 💡 إنشاء طبقات البيانات (Data Layers) مرة واحدة فقط في بداية التطبيق
   final localDataSource = FatwaLocalDataSource();
   final remoteDataSource = FatwaRemoteDataSource(dio: DioHelper.dio);
   final repository = FatwaRepository(
@@ -32,16 +38,16 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final FatwaRepository repository;
+  
   const MyApp({super.key, required this.repository});
+  
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
       providers: [
-        RepositoryProvider<FatwaRepository>(
-          create: (context) => FatwaRepository(
-            localDataSource: FatwaLocalDataSource(),
-            remoteDataSource: FatwaRemoteDataSource(dio: Dio()),
-          ),
+        // 💡 التعديل الأهم: استخدمنا النسخة الممررة من main بدلاً من إنشاء نسخة جديدة
+        RepositoryProvider<FatwaRepository>.value(
+          value: repository,
         ),
       ],
       child: MultiBlocProvider(
@@ -61,7 +67,7 @@ class MyApp extends StatelessWidget {
               debugShowCheckedModeBanner: false,
               title: 'الفتاوى',
               themeMode: themeMode,
-              // 1. تفعيل اتجاه اليمين لليسار (RTL) افتراضياً في كل التطبيقqwAAAAAAAAAA221122
+              // 1. تفعيل اتجاه اليمين لليسار (RTL) افتراضياً في كل التطبيق
               builder: (context, child) {
                 return Directionality(
                   textDirection: TextDirection.rtl,
@@ -70,7 +76,7 @@ class MyApp extends StatelessWidget {
               },
               // 2. تطبيق الثوابت والوضع الفاتح
               theme: ThemeData(
-                textTheme: TextTheme(
+                textTheme: const TextTheme(
                   titleLarge: TextStyle(color: AppColors.textPrimary),
                   titleMedium: TextStyle(color: AppColors.textSecondary),
                   titleSmall: TextStyle(color: AppColors.textHint),
@@ -81,12 +87,12 @@ class MyApp extends StatelessWidget {
                   seedColor: AppColors.primaryGreen,
                 ),
               ),
-              // مجهز للوضع الليلي مستقبلاً
+              // 3. مجهز للوضع الليلي مستقبلاً
               darkTheme: ThemeData(
                 fontFamily: 'IBMPlexSansArabic',
                 scaffoldBackgroundColor: AppColors.backgroundDark,
                 cardColor: AppColors.cardColorDark,
-                colorScheme: ColorScheme.dark(
+                colorScheme: const ColorScheme.dark(
                   primary: AppColors.primaryGreen,
                   secondary: AppColors.primaryGreen,
                   surface: AppColors.cardColorDark,

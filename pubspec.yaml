@@ -70,6 +70,7 @@ flutter:
     - assets/images/logo-dome.png
     - assets/images/logo-calligraphy.png
     - assets/files/1-8.pdf
+    - assets/files/المدود.pdf
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 

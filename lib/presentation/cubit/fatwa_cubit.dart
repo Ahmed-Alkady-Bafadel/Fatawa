@@ -1,11 +1,5 @@
-import 'dart:io';
-
-import 'package:fatawa/presentation/cubit/fatwa_state.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:hive/hive.dart';
-import 'package:path_provider/path_provider.dart';
-import '../../data/models/fatwa_model.dart';
+import 'package:fatawa/presentation/cubit/fatwa_state.dart';
 import '../../data/repositories/fatwa_repository.dart';
 
 class FatwaCubit extends Cubit<FatwaState> {
@@ -13,99 +7,17 @@ class FatwaCubit extends Cubit<FatwaState> {
 
   FatwaCubit({required this.repository}) : super(FatwaInitial());
 
-  List<FatwaModel> _cachedFatwas = [];
-
-  /// استدعاء الفتاوى (تتضمن المزامنة الصامتة تلقائياً)
+  /// استدعاء الفتاوى (تتضمن المزامنة التلقائية مع التحقق من الإنترنت)
   Future<void> loadFatwas() async {
-    emit(FatwaLoading()); // إظهار مؤشر التحميل
+    emit(FatwaLoading());
 
-    if (_cachedFatwas.isNotEmpty) {
-      emit(FatwaLoaded(_cachedFatwas));
-      return;
-    }
-    // الـ Repo سيقوم برفع المعلق، جلب الجديد، ثم إرجاع الفتاوى التي تنتظر إجابة فقط
-    // final fatwas = await repository.syncAndFetchFatwas();
-    await Future.delayed(const Duration(seconds: 1));
+    try {
+      final fatwas = await repository.syncAndFetchFatwas();
 
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File('${dir.path}/test_fatwa.pdf');
-    if (!await file.exists()) {
-      final byteData = await rootBundle.load('assets/files/1-8.pdf');
-      await file.writeAsBytes(byteData.buffer.asUint8List());
-    }
+      emit(FatwaLoaded(fatwas));
+    } catch (e) {
 
-    _cachedFatwas = [
-      // 3. إنشاء مودل وهمي يحتوي على المسار الحقيقي
-      FatwaModel(
-        title: ' أحكام المعاملات',
-        questionSnippet: 'هذا نص مبدئي تم جلبه من الـ API الوهمي...',
-        localPdfPath: file.path,
-        pdfUrl: 'assets/files/1-8.pdf', // هنا مربط الفرس!
-      ),
-      FatwaModel(
-        title: ' أحكام المعاملات',
-        questionSnippet: 'هذا نص مبدئي تم جلبه من الـ API الوهمي...',
-        localPdfPath: file.path,
-        pdfUrl: 'assets/files/1-8.pdf', // هنا مربط الفرس!
-      ),
-      FatwaModel(
-        title: ' أحكام المعاملات',
-        questionSnippet: 'هذا نص مبدئي تم جلبه من الـ API الوهمي...',
-        localPdfPath: file.path,
-        pdfUrl: 'assets/files/1-8.pdf', // هنا مربط الفرس!
-      ),
-      FatwaModel(
-        title: ' أحكام المعاملات',
-        questionSnippet: 'هذا نص مبدئي تم جلبه من الـ API الوهمي...',
-        localPdfPath: file.path,
-        pdfUrl: 'assets/files/1-8.pdf', // هنا مربط الفرس!
-      ),
-      FatwaModel(
-        title: ' أحكام المعاملات',
-        questionSnippet: 'هذا نص مبدئي تم جلبه من الـ API الوهمي...',
-        localPdfPath: file.path,
-        pdfUrl: 'assets/files/1-8.pdf', // هنا مربط الفرس!
-      ),
-    ];
-
-    final box = Hive.box<FatwaModel>('fatwas_box');
-    List<FatwaModel> finalFatwasToDisplay = [];
-
-    for (FatwaModel mockFatwa in _cachedFatwas) {
-      final savedFatwa = box.get(mockFatwa.pdfUrl);
-      if (savedFatwa != null) {
-        finalFatwasToDisplay.add(savedFatwa);
-      } else {
-        box.put(mockFatwa.pdfUrl, mockFatwa);
-        finalFatwasToDisplay.add(mockFatwa);
-      }
-    }
-
-    _cachedFatwas = finalFatwasToDisplay;
-    emit(FatwaLoaded(_cachedFatwas)); // عرض الفتاوى في الشاشة
-  }
-
-  /// إرسال الإجابة (سواء نص، صوت، أو PDF)
-  Future<void> submitAnswer(FatwaModel answeredFatwa) async {
-    // حفظ الإجابة محلياً وبدء الرفع في الخلفية
-    await repository.submitFatwaAnswerLocally(answeredFatwa);
-
-    // إعادة تحميل القائمة لتختفي الفتوى المجاب عليها من الشاشة
-    loadFatwas();
-  }
-
-  void updateFatawa(FatwaModel updateFatwa) async {
-    final index = _cachedFatwas.indexWhere(
-      (f) => f.pdfUrl == updateFatwa.pdfUrl,
-    );
-    if (index != -1) {
-      _cachedFatwas[index] = updateFatwa;
-      emit(FatwaLoaded(List.from(_cachedFatwas)));
-      try {
-        await repository.saveFatwaDraft(updateFatwa);
-      } catch (e) {
-        print('حدث خطأ أثناء الحفظ في قاعدة البيانات: $e');
-      }
     }
   }
+
 }

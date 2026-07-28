@@ -1,52 +1,102 @@
-import 'package:fatawa/data/datasources/fatwa_local_data_source.dart';
-import 'package:fatawa/data/datasources/fatwa_remote_data_source.dart';
-
+import 'dart:io';
+import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
+import '../datasources/fatwa_local_data_source.dart';
+import '../datasources/fatwa_remote_data_source.dart';
 import '../models/fatwa_model.dart';
 
 class FatwaRepository {
   final FatwaLocalDataSource localDataSource;
-  final FatwaRemoteDataSource remoteDataSource;
+  FatwaRemoteDataSource remoteDataSource;
 
   FatwaRepository({
     required this.localDataSource,
     required this.remoteDataSource,
   });
 
-  /// 1. مزامنة الفتاوى: رفع المعلق أولاً ثم جلب الجديد بصمت
-  Future<List<FatwaModel>> syncAndFetchFatwas() async {
-    final pendingFatwas = localDataSource.getPendingFatwasToSync();
+  Future<bool> _hasInternetConnection() async {
+    try {
+      final result = await InternetAddress.lookup('google.com');
+      return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
+    } on SocketException catch (_) {
+      return false;
+    }
+  }
 
-    for (var fatwa in pendingFatwas) {
-      try {
-        final uploadSuccess = await remoteDataSource.uploadAnsweredFatwa(fatwa);
-        if (uploadSuccess) {
-          await localDataSource.deleteFatwa(fatwa.pdfUrl);
-        }
-      } catch (e) {
-        continue;
+  // 💡 مهمتها الوحيدة: تجهيز ونسخ ملف الـ PDF التجريبي للذاكرة المحلية ليعمل التطبيق بدون أخطاء
+  Future<void> _initDummyPdfIfNeeded() async {
+    final dir = await getApplicationDocumentsDirectory();
+    final file = File('${dir.path}/test_fatwa.pdf');
+
+    if (!await file.exists()) {
+      final byteData = await rootBundle.load('assets/files/1-8.pdf');
+      await file.writeAsBytes(byteData.buffer.asUint8List());
+    }
+  }
+
+  // المزامنة وجلب البيانات
+  Future<List<FatwaModel>> syncAndFetchFatwas() async {
+    await _initDummyPdfIfNeeded();
+
+    final newFatwas = await remoteDataSource.fetchNewFatwas();
+
+    final oldMap = {
+      for (final fatwa in localDataSource.getAllFatwas()) fatwa.pdfUrl: fatwa,
+    };
+
+    for (final newFatwa in newFatwas) {
+      final old = oldMap[newFatwa.pdfUrl];
+
+      if (old != null) {
+        newFatwa.textAnswer = old.textAnswer;
+        newFatwa.localAudioPath = old.localAudioPath;
+        newFatwa.localPdfPath = old.localPdfPath;
       }
     }
 
-    try {
-      final newFatwas = await remoteDataSource.fetchNewFatwas();
-      await localDataSource.saveFatwas(newFatwas);
-    } catch (e) {
-      // صمت
-    }
+    await localDataSource.saveFatwas(newFatwas);
+
+    // final isConnected = await _hasInternetConnection();
+
+    // if (isConnected) {
+    //   try {
+    //     final pendingFatwas = localDataSource.getPendingFatwasToSync();
+    //     for (var fatwa in pendingFatwas) {
+    //       try {
+    //         final uploadSuccess = await remoteDataSource.uploadAnsweredFatwa(
+    //           fatwa,
+    //         );
+    //         if (uploadSuccess) {
+    //           await localDataSource.deleteFatwa(fatwa.pdfUrl);
+    //         }
+    //       } catch (e) {
+    //         continue;
+    //       }
+    //     }
+
+    //   final newFatwas = await remoteDataSource.fetchNewFatwas();
+
+    //   // ربط الـ PDF المحلي بالبيانات القادمة لضمان عمل شاشة العرض بسلاسة
+    //   final dir = await getApplicationDocumentsDirectory();
+    //   final localPath = '${dir.path}/test_fatwa.pdf';
+
+    //   for (var fatwa in newFatwas) {
+    //     // نضع المسار المحلي لكي تستطيع شاشة الـ PDF قراءته
+    //     // (يمكنك تعديل هذا الشرط لاحقاً حسب تصميمك)
+    //   }
+
+    //   await localDataSource.saveFatwas(newFatwas);
+    // } catch (e) {
+    // صمت في حال فشل الجلب ليعتمد على التخزين المحلي
+    //   }
+    // }
 
     return localDataSource.getUnansweredFatwas();
   }
 
-  /// 2. حفظ الإجابة (سواء كانت نص، صوت، أو PDF)
-  /// الـ Cubit سيقوم بتجهيز الـ FatwaModel المليء بالإجابة ويمرره هنا
   Future<void> submitFatwaAnswerLocally(FatwaModel answeredFatwa) async {
-    // نتأكد فقط أن حالة الفتوى أصبحت "مجاب عليها" للضمان
     final fatwaToSave = answeredFatwa.copyWith(isAnswered: true);
-
-    // حفظ في الذاكرة المحلية
     await localDataSource.updateFatwa(fatwaToSave);
-
-    // محاولة الرفع فوراً في الخلفية
     syncAndFetchFatwas();
   }
 

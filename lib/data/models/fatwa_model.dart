@@ -13,13 +13,14 @@ class FatwaModel extends HiveObject {
   @HiveField(3)
   final bool isAnswered;
   @HiveField(4)
-  final String? localPdfPath; // إجابة عبر ملف PDF معدل
+   String? localPdfPath; // إجابة عبر ملف PDF معدل
   @HiveField(5)
   final String date;
   @HiveField(6)
   String? localAudioPath; // إجابة عبر تسجيل صوتي
   @HiveField(7)
   String? textAnswer; // إجابة نصية
+
   FatwaModel({
     required this.title,
     required this.questionSnippet,
@@ -28,9 +29,11 @@ class FatwaModel extends HiveObject {
     this.localPdfPath,
     this.localAudioPath,
     this.textAnswer,
-    String? date, 
-  }) : date = date ?? '${DateTime.now().month}/${DateTime.now().day}';
-  
+    String? date,
+  }) : date =
+           date ??
+           '${DateTime.now().month}/${DateTime.now().day}'; // تم تحسين شكل التاريخ
+
   FatwaModel copyWith({
     String? title,
     String? questionSnippet,
@@ -55,9 +58,21 @@ class FatwaModel extends HiveObject {
 
   factory FatwaModel.fromJson(Map<String, dynamic> json) {
     return FatwaModel(
-      title: json['title'] ?? '',
-      questionSnippet: json['questionSnippet'] ?? '',
+      title: json['title'] ?? 'بدون عنوان',
+      questionSnippet: json['questionSnippet'] ?? 'لا يوجد نص للسؤال',
       pdfUrl: json['pdfUrl'] ?? '',
+      isAnswered: json['isAnswered'] ?? false,
     );
+  }
+
+  // 💡 إضافة جديدة: مفيدة جداً لاحقاً عند التعامل مع API معقد
+  Map<String, dynamic> toJson() {
+    return {
+      'title': title,
+      'questionSnippet': questionSnippet,
+      'pdfUrl': pdfUrl,
+      'isAnswered': isAnswered,
+      'date': date,
+    };
   }
 }
