@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import '../../../core/theme/app_colors.dart';
 
 class SignUpPage extends StatefulWidget {
-  const SignUpPage({Key? key}) : super(key: key);
+  const SignUpPage({super.key});
 
   @override
   State<SignUpPage> createState() => _SignUpPageState();
@@ -62,7 +62,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               ? []
                               : [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.04),
+                                    color: Colors.black.withValues(alpha: 0.04),
                                     blurRadius: 20,
                                     offset: const Offset(0, 10),
                                   ),
@@ -111,7 +111,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               const SizedBox(height: 32),
 
                               // الحقول الأربعة مجهزة بالكامل بالتحقق والحفظ اللحظي
-                              CustomTextField(
+                              CustomTextFieldOptimized(
                                 label: 'الاسم الكامل',
                                 hint: 'أدخل اسمك الكامل',
                                 filled: true,
@@ -123,7 +123,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                               const SizedBox(height: 16),
 
-                              CustomTextField(
+                              CustomTextFieldOptimized(
                                 label: 'البريد الإلكتروني',
                                 hint: 'أدخل بريدك الإلكتروني',
                                 keyboardType: TextInputType.emailAddress,
@@ -145,7 +145,7 @@ class _SignUpPageState extends State<SignUpPage> {
                               ),
                               const SizedBox(height: 16),
 
-                              CustomTextField(
+                              CustomTextFieldOptimized(
                                 label: 'اسم المستخدم',
                                 hint: 'أدخل اسم المستخدم',
                                 filled: true,
@@ -157,7 +157,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     : null,
                               ),
                               const SizedBox(height: 16),
-                              CustomTextField(
+                              CustomTextFieldOptimized(
                                 label: 'كلمة المرور',
                                 hint: 'أدخل كلمة المرور',
                                 isPassword: _isPasswordObscured,

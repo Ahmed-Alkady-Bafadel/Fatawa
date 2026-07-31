@@ -183,9 +183,7 @@ class _EnglishPdfEditorStrings extends PdfEditorStrings {
   String get insert => 'Insert';
   @override
   String get note => 'Note';
-
   @override
-  // TODO: implement stamp
   String get stamp => 'Stamp';
 }
 

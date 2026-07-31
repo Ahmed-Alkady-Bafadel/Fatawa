@@ -58,7 +58,7 @@ class _LoginPageState extends State<LoginPage> {
                               ? []
                               : [
                                   BoxShadow(
-                                    color: Colors.black.withOpacity(0.04),
+                                    color: Colors.black.withValues(alpha: 0.04),
                                     blurRadius: 20,
                                     offset: const Offset(0, 10),
                                   ),
@@ -100,7 +100,7 @@ class _LoginPageState extends State<LoginPage> {
                               const SizedBox(height: 32),
 
                               // الحقول
-                              CustomTextField(
+                              CustomTextFieldOptimized(
                                 label: 'اسم المستخدم',
                                 hint: 'أدخل اسم المستخدم',
                                 filled: true,
@@ -112,7 +112,7 @@ class _LoginPageState extends State<LoginPage> {
                                 },
                               ),
                               const SizedBox(height: 16),
-                              CustomTextField(
+                              CustomTextFieldOptimized(
                                 label: 'كلمة المرور',
                                 hint: 'أدخل كلمة المرور',
                                 isPassword: _isPasswordObscured,

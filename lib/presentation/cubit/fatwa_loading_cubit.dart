@@ -29,6 +29,7 @@ class FatwaLoadingCubit extends Cubit<FatwaLoadingState> {
       );
 
       await repository.submitFatwaAnswerLocally(answeredFatwa);
+      
       emit(FatwaLoadingActionSuccess());
     } catch (e) {
       emit(FatwaLoadingActionError('فشل حفظ وإرسال الفتوى: $e'));

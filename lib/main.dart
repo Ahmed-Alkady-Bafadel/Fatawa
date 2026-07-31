@@ -1,4 +1,3 @@
-import 'package:dio/dio.dart';
 import 'package:fatawa/core/network/dio_helper.dart';
 import 'package:fatawa/data/datasources/fatwa_local_data_source.dart';
 import 'package:fatawa/data/datasources/fatwa_remote_data_source.dart';

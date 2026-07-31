@@ -11,7 +11,7 @@ class FatwaModel extends HiveObject {
   @HiveField(2)
   final String pdfUrl; // المعرف الأساسي
   @HiveField(3)
-  final bool isAnswered;
+   bool isAnswered;
   @HiveField(4)
    String? localPdfPath; // إجابة عبر ملف PDF معدل
   @HiveField(5)

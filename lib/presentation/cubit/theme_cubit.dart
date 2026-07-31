@@ -6,7 +6,7 @@ class ThemeCubit extends Cubit<ThemeMode> {
   ThemeCubit() : super(ThemeMode.system);
 
   // دالة التبديل بين الوضعين
-  void toggleTheme(ThemeMode themeMode) {
+  void changeTheme(ThemeMode themeMode) {
     emit(themeMode);
   }
 }

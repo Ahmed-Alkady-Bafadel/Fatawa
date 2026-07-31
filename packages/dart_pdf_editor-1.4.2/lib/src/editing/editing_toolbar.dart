@@ -293,7 +293,7 @@ class _PdfEditingToolbarState extends State<PdfEditingToolbar> {
 
   /// The seven dock groups, in order. Filtered by [PdfEditingToolbar.tools]
   /// and [PdfEditingToolbar.showMarkup] before display.
-  static List<_ToolGroup> _groups = <_ToolGroup>[
+  static final List<_ToolGroup> _groups = <_ToolGroup>[
     _ToolGroup(
         'select',
         pdfStrings.select,

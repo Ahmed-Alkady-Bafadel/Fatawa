@@ -15,6 +15,7 @@ class AppColors {
   // ألوان النصوص
   static const Color textPrimary = Color(0xFF212121);
   static const Color textSecondary = Color(0xFF757575);
+  static const Color textLabel = Color(0xFF4A4A4A);
   static const Color textHint = Color(0xFFBDBDBD);
 
   // ألوان الحقول والحدود

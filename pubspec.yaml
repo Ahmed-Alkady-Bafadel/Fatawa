@@ -69,8 +69,11 @@ flutter:
   assets:
     - assets/images/logo-dome.png
     - assets/images/logo-calligraphy.png
-    - assets/files/1-8.pdf
-    - assets/files/المدود.pdf
+    - assets/files/العمل في البنوك واستلام الفوائد _020955.pdf
+    - assets/files/القدوة في المسجد المتعدد الطوابق.pdf
+    - assets/files/الوفاء بالوعد والأخذ بحق الظفر.pdf
+    - assets/files/بيع جزء من الأرض.pdf
+    - assets/files/دفع الزكاة لوالد الزوجة.pdf
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
 
