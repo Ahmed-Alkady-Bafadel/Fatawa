@@ -14,13 +14,14 @@ class PrimaryButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return SizedBox(
       width: double.infinity,
       height: 50,
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
         style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0F7A41), // اللون الأخضر الأساسي
+          backgroundColor: theme.colorScheme.outlineVariant, // اللون الأخضر الأساسي
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

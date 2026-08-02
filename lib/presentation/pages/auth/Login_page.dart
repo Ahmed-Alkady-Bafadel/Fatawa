@@ -29,7 +29,8 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: SafeArea(
@@ -92,9 +93,7 @@ class _LoginPageState extends State<LoginPage> {
                                 'أدخل بيانات الاعتماد للمتابعة',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: isDark
-                                      ? Colors.grey[400]
-                                      : AppColors.textSecondary,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                               const SizedBox(height: 32),
@@ -128,9 +127,7 @@ class _LoginPageState extends State<LoginPage> {
                                     _isPasswordObscured
                                         ? Icons.visibility_off_outlined
                                         : Icons.visibility_outlined,
-                                    color: isDark
-                                        ? Colors.grey[400]
-                                        : AppColors.textSecondary,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -179,9 +176,7 @@ class _LoginPageState extends State<LoginPage> {
                                 children: [
                                   Expanded(
                                     child: Divider(
-                                      color: isDark
-                                          ? Colors.grey[800]
-                                          : AppColors.inputBorder,
+                                      color: theme.colorScheme.outlineVariant,
                                     ),
                                   ),
                                   Padding(
@@ -191,17 +186,14 @@ class _LoginPageState extends State<LoginPage> {
                                     child: Text(
                                       'أو',
                                       style: TextStyle(
-                                        color: isDark
-                                            ? Colors.grey[400]
-                                            : AppColors.textSecondary,
+                                        color:
+                                            theme.colorScheme.onSurfaceVariant,
                                       ),
                                     ),
                                   ),
                                   Expanded(
                                     child: Divider(
-                                      color: isDark
-                                          ? Colors.grey[800]
-                                          : AppColors.inputBorder,
+                                      color: theme.colorScheme.outlineVariant,
                                     ),
                                   ),
                                 ],
@@ -214,9 +206,7 @@ class _LoginPageState extends State<LoginPage> {
                                 height: 50,
                                 decoration: BoxDecoration(
                                   border: Border.all(
-                                    color: isDark
-                                        ? Colors.grey[700]!
-                                        : AppColors.inputBorder,
+                                    color: theme.colorScheme.outlineVariant,
                                   ),
                                   borderRadius: BorderRadius.circular(12),
                                   color: isDark
@@ -254,9 +244,7 @@ class _LoginPageState extends State<LoginPage> {
                                   Text(
                                     'ليس لديك حساب؟ ',
                                     style: TextStyle(
-                                      color: isDark
-                                          ? Colors.grey[400]
-                                          : AppColors.textSecondary,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   GestureDetector(

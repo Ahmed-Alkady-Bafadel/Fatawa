@@ -17,7 +17,8 @@ class MainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeMode = context.watch<ThemeCubit>().state;
-    final isDark = (themeMode == ThemeMode.dark) ||
+    final isDark =
+        (themeMode == ThemeMode.dark) ||
         (themeMode == ThemeMode.system &&
             MediaQuery.platformBrightnessOf(context) == Brightness.dark);
 
@@ -31,23 +32,28 @@ class MainPage extends StatelessWidget {
         }
       },
       child: Scaffold(
-        backgroundColor: isDark ? const Color(0xFF121212) : const Color(0xFFF9FDF9),
+        backgroundColor: isDark
+            ? const Color(0xFF121212)
+            : const Color(0xFFF9FDF9),
         // هنا السحر! AppBar أصبح const بالكامل ولن يُبنى إلا إذا تغير الثيم
-        appBar: const MainAppBar(), 
+        appBar: const MainAppBar(),
         body: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 840),
             child: RefreshIndicator(
               color: AppColors.primaryGreen,
-              onRefresh: () async => await context.read<FatwaCubit>().loadFatwas(),
+              onRefresh: () async =>
+                  await context.read<FatwaCubit>().loadFatwas(),
               child: BlocBuilder<FatwaCubit, FatwaState>(
                 builder: (context, state) {
                   if (state is FatwaLoading) {
                     return const Center(
-                      child: CircularProgressIndicator(color: AppColors.primaryGreen),
+                      child: CircularProgressIndicator(
+                        color: AppColors.primaryGreen,
+                      ),
                     );
                   }
-                  
+
                   if (state is FatwaLoaded && state.fatwas.isNotEmpty) {
                     return LayoutBuilder(
                       builder: (context, constraints) {
@@ -60,25 +66,30 @@ class MainPage extends StatelessWidget {
                               vertical: 16,
                               horizontal: 16,
                             ),
-                            gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-                              maxCrossAxisExtent: 400,
-                              mainAxisExtent: 80,
-                              crossAxisSpacing: 16,
-                              mainAxisSpacing: 16,
-                            ),
+                            gridDelegate:
+                                const SliverGridDelegateWithMaxCrossAxisExtent(
+                                  maxCrossAxisExtent: 400,
+                                  mainAxisExtent: 110,
+                                  crossAxisSpacing: 16,
+                                  mainAxisSpacing: 16,
+                                ),
                             itemCount: state.fatwas.length,
                             itemBuilder: (context, index) {
                               return Container(
                                 decoration: BoxDecoration(
                                   border: Border.all(
-                                    color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
+                                    color: isDark
+                                        ? Colors.grey.shade800
+                                        : Colors.grey.shade300,
                                     width: 1,
                                   ),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(11),
-                                  child: FatwaCardWidget(fatwa: state.fatwas[index]),
+                                  child: FatwaCardWidget(
+                                    fatwa: state.fatwas[index],
+                                  ),
                                 ),
                               );
                             },
@@ -94,7 +105,9 @@ class MainPage extends StatelessWidget {
                             ),
                             itemCount: state.fatwas.length,
                             separatorBuilder: (context, index) => Divider(
-                              color: isDark ? Colors.grey[800] : Colors.grey[300],
+                              color: isDark
+                                  ? Colors.grey[800]
+                                  : Colors.grey[300],
                               height: 1,
                               thickness: 1,
                             ),
@@ -105,7 +118,7 @@ class MainPage extends StatelessWidget {
                       },
                     );
                   }
-                  
+
                   // استدعاء المكون الجديد بـ const لمنع أي Rebuild غير ضروري!
                   return const EmptyFatwaState();
                 },
@@ -118,7 +131,7 @@ class MainPage extends StatelessWidget {
   }
 }
 
-  Future<bool> showAppExitDialog(BuildContext context, bool isDark) async {
+Future<bool> showAppExitDialog(BuildContext context, bool isDark) async {
   final bool? shouldExit = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(

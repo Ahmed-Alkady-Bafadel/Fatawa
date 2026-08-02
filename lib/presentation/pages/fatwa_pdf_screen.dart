@@ -14,7 +14,6 @@ import 'package:fatawa/data/repositories/fatwa_repository.dart';
 import 'package:fatawa/presentation/cubit/fatwa_cubit.dart';
 import 'package:fatawa/presentation/cubit/fatwa_loading_cubit.dart';
 
-
 class FatwaPdfScreen extends StatefulWidget {
   final FatwaModel fatwa;
 
@@ -44,7 +43,8 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
     try {
       Uint8List? bytes;
 
-      if (widget.fatwa.localPdfPath != null && widget.fatwa.localPdfPath!.isNotEmpty) {
+      if (widget.fatwa.localPdfPath != null &&
+          widget.fatwa.localPdfPath!.isNotEmpty) {
         final file = File(widget.fatwa.localPdfPath!);
         if (await file.exists()) {
           bytes = await file.readAsBytes();
@@ -76,15 +76,21 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
   Future<void> _triggerSaveDraft() async {
     setState(() => _isSaved = true);
 
-    final currentText = _inputBarKey.currentState?.currentText ?? widget.fatwa.textAnswer;
-    final currentAudioPath = _inputBarKey.currentState?.currentAudioPath ?? widget.fatwa.localAudioPath;
+    final currentText =
+        _inputBarKey.currentState?.currentText ?? widget.fatwa.textAnswer;
+    final currentAudioPath =
+        _inputBarKey.currentState?.currentAudioPath ??
+        widget.fatwa.localAudioPath;
     String? savedFilePath = widget.fatwa.localPdfPath;
 
     try {
       if (_pdfController != null) {
         final pdfBytes = _pdfController!.bytes;
         final directory = await getApplicationDocumentsDirectory();
-        final safeFileName = widget.fatwa.pdfUrl.replaceAll(RegExp(r'[^a-zA-Z0-9]'), '_');
+        final safeFileName = widget.fatwa.pdfUrl.replaceAll(
+          RegExp(r'[^a-zA-Z0-9]'),
+          '_',
+        );
         final file = File('${directory.path}/draft_$safeFileName.pdf');
 
         await file.writeAsBytes(pdfBytes);
@@ -98,7 +104,9 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
       );
 
       if (mounted) {
-        await context.read<FatwaCubit>().repository.localDataSource.updateFatwa(updatedModel);
+        await context.read<FatwaCubit>().repository.localDataSource.updateFatwa(
+          updatedModel,
+        );
       }
     } catch (e) {
       debugPrint('خطأ في حفظ مسودة الـ PDF: $e');
@@ -116,7 +124,9 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
         throw Exception('متحكم الـ PDF غير مهيأ');
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('فشل تجهيز الـ PDF: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('فشل تجهيز الـ PDF: $e')));
       setState(() => _isSaved = false);
       return;
     }
@@ -143,9 +153,14 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
         return Directionality(
           textDirection: TextDirection.rtl,
           child: AlertDialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             title: const Center(
-              child: Text('تأكيد الإرسال', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+              child: Text(
+                'تأكيد الإرسال',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+              ),
             ),
             content: const Text(
               'هل أنت متأكد أنك تريد إرسال هذه الفتوى والاعتماد النهائي؟',
@@ -158,7 +173,9 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.grey.shade700,
                   side: const BorderSide(color: Colors.black, width: 2),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 onPressed: () => Navigator.of(dialogContext).pop(),
                 child: const Text('إلغاء'),
@@ -166,7 +183,9 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
               FilledButton(
                 style: FilledButton.styleFrom(
                   backgroundColor: Colors.green.shade700,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
                 onPressed: () async {
                   Navigator.of(dialogContext).pop();
@@ -186,14 +205,17 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
     final isDark = Theme.of(context).colorScheme.brightness == Brightness.dark;
 
     return BlocProvider(
-      create: (context) => FatwaLoadingCubit(repository: context.read<FatwaRepository>()),
+      create: (context) =>
+          FatwaLoadingCubit(repository: context.read<FatwaRepository>()),
       child: BlocListener<FatwaLoadingCubit, FatwaLoadingState>(
         listener: (context, state) {
           if (state is FatwaLoadingActionSuccess) {
             Navigator.of(context).pop();
           } else if (state is FatwaLoadingActionError) {
             setState(() => _isSaved = false);
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text(state.message)));
           }
         },
         child: PopScope(
@@ -208,9 +230,11 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
             }
           },
           child: Scaffold(
+            resizeToAvoidBottomInset: true,
             appBar: FatwaPdfAppBar(
               title: widget.fatwa.title,
-              onSendPressed: () async => await _showSendConfirmationDialog(context),
+              onSendPressed: () async =>
+                  await _showSendConfirmationDialog(context),
             ),
             body: SafeArea(
               child: _isLoadingPdf
@@ -219,68 +243,149 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
                   ? const Center(child: Text('لا يوجد ملف للعرض'))
                   : LayoutBuilder(
                       builder: (context, constraints) {
-                        final bool isWideScreen = constraints.maxWidth > 800;
-                        final bool isLandscape = constraints.maxWidth > constraints.maxHeight;
-
-                        if (isWideScreen) {
-                          return Row(
+                        return Column(
                             children: [
                               Expanded(
-                                flex: 2,
-                                child: PdfViewerArea(pdfController: _pdfController!),
+                                child:PdfViewerArea(
+                                          pdfController: _pdfController!,
+                                        ),
                               ),
                               Container(
-                                width: 340,
-                                decoration: BoxDecoration(
-                                  color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade50,
-                                  border: Border(
-                                    right: BorderSide(
-                                      color: isDark ? Colors.grey.shade800 : Colors.grey.shade300,
-                                      width: 1,
-                                    ),
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    const Spacer(),
-                                    Icon(Icons.edit_note_rounded, size: 64, color: Colors.grey.shade400),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'مساحة الرد والتعليق',
-                                      style: TextStyle(color: Colors.grey.shade500, fontSize: 18),
-                                    ),
-                                    const Spacer(),
-                                    Container(
-                                      padding: const EdgeInsets.only(bottom: 16, top: 8),
-                                      color: isDark ? const Color(0xFF121212) : Colors.white,
-                                      child: FatwaInputBar(
-                                        key: _inputBarKey,
-                                        fatwa: widget.fatwa,
-                                        isLandscapeCompact: false,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          );
-                        } else {
-                          return Column(
-                            children: [
-                              Expanded(
-                                child: PdfViewerArea(pdfController: _pdfController!),
-                              ),
-                              Container(
-                                color: isDark ? const Color(0xFF121212) : Colors.white,
+                                decoration: BoxDecoration(color: isDark
+                                    ? const Color(0xFF121212)
+                                    : Colors.white,
+                                    border: Border(top: BorderSide(color: isDark? Colors.grey.shade800  
+                                    : Colors.grey.shade300,))),
                                 child: FatwaInputBar(
                                   key: _inputBarKey,
                                   fatwa: widget.fatwa,
-                                  isLandscapeCompact: isLandscape,
+                                  isLandscapeCompact: false,
                                 ),
                               ),
                             ],
                           );
-                        }
+                        
+                        // final bool isWideScreen = constraints.maxWidth > 800;
+                        // final bool isLandscape =
+                        //     constraints.maxWidth > constraints.maxHeight;
+
+                        // if (isWideScreen) {
+                        //   return Row(
+                        //     crossAxisAlignment: CrossAxisAlignment.start,
+                        //     children: [
+                        //       Expanded(
+                        //         flex: 2,
+                        //         child: PdfViewerArea(
+                        //           pdfController: _pdfController!,
+                        //         ),
+                        //       ),
+                        //       Container(
+                        //         width: 340,
+                        //         decoration: BoxDecoration(
+                        //           color: isDark
+                        //               ? const Color(0xFF1E1E1E)
+                        //               : Colors.grey.shade50,
+                        //           border: Border(
+                        //             right: BorderSide(
+                        //               color: isDark
+                        //                   ? Colors.grey.shade800
+                        //                   : Colors.grey.shade300,
+                        //               width: 1,
+                        //             ),
+                        //           ),
+                        //         ),
+                        //         child: Column(
+                        //           // 💡 عمود رئيسي يقسم اللوحة إلى جزأين
+                        //           children: [
+                        //             // 1. الجزء العلوي (أيقونة والنص) - سيكون قابلاً للتمرير إذا ضاقت المساحة
+                        //             Expanded(
+                        //               child: SingleChildScrollView(
+                        //                 child: Padding(
+                        //                   padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+                        //                   child: Column(
+                        //                     mainAxisSize: MainAxisSize.min,
+                        //                     children: [
+                        //                       const SizedBox(
+                        //                         height: 4,
+                        //                       ), // مسافة علوية لتوسيط الشكل جمالياً
+                        //                       Icon(
+                        //                         Icons.edit_note_rounded,
+                        //                         size: 50,
+                        //                         color: Colors.grey.shade400,
+                        //                       ),
+                        //                       const SizedBox(height: 12),
+                        //                       Text(
+                        //                         'مساحة الرد والتعليق',
+                        //                         style: TextStyle(
+                        //                           color: isDark
+                        //                               ? Colors.white70
+                        //                               : Colors.grey.shade700,
+                        //                           fontSize: 16,
+                        //                           fontWeight: FontWeight.bold,
+                        //                         ),
+                        //                       ),
+                        //                     ],
+                        //                   ),
+                        //                 ),
+                        //               ),
+                        //             ),
+                        //             const SizedBox(height: 20),
+                        //             // 2. حقل الإدخال والتسجيل - سيبقى مثبتاً في الأسفل وفوق الكيبورد تماماً
+                        //             Container(
+                        //               padding: const EdgeInsets.all(8.0),
+                        //               decoration: BoxDecoration(
+                        //                 color: isDark
+                        //                     ? const Color(0xFF1E1E1E)
+                        //                     : Colors.white,
+                        //                 border: Border(
+                        //                   top: BorderSide(
+                        //                     color: isDark
+                        //                         ? Colors.grey.shade800
+                        //                         : Colors.grey.shade300,
+                        //                     width: 1,
+                        //                   ),
+                        //                 ),
+                        //               ),
+                        //               child: FatwaInputBar(
+                        //                 key: _inputBarKey,
+                        //                 fatwa: widget.fatwa,
+                        //                 isLandscapeCompact: true,
+                        //               ),
+                        //             ),
+                        //           ],
+                        //         ),
+                        //       ),
+                        //     ],
+                        //   );
+                        // } else {
+                        //   return Column(
+                        //     children: [
+                        //       Expanded(
+                        //         child: Navigator(
+                        //           onGenerateRoute: (settings) {
+                        //             return MaterialPageRoute(
+                        //               builder: (context) => Scaffold(
+                        //                 body: PdfViewerArea(
+                        //                   pdfController: _pdfController!,
+                        //                 ),
+                        //               ),
+                        //             );
+                        //           },
+                        //         ),
+                        //       ),
+                        //       Container(
+                        //         color: isDark
+                        //             ? const Color(0xFF121212)
+                        //             : Colors.white,
+                        //         child: FatwaInputBar(
+                        //           key: _inputBarKey,
+                        //           fatwa: widget.fatwa,
+                        //           isLandscapeCompact: isLandscape,
+                        //         ),
+                        //       ),
+                        //     ],
+                        //   );
+                        // }
                       },
                     ),
             ),
@@ -296,5 +401,3 @@ class _FatwaPdfScreenState extends State<FatwaPdfScreen> {
     super.dispose();
   }
 }
-
-

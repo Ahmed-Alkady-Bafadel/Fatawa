@@ -64,59 +64,88 @@ class _PdfViewerAreaState extends State<PdfViewerArea> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Stack(
       children: [
         Positioned.fill(
-          child: PdfEditorView(
-            controller: widget.pdfController,
-            viewerController: _viewerController,
-            features: const PdfEditorFeatures(search: false),
+          child: SafeArea(
+            bottom: false,
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(12),
+                topRight: Radius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: PdfEditorView(
+                      controller: widget.pdfController,
+                      viewerController: _viewerController,
+                      features: const PdfEditorFeatures(search: false),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-        PositionedDirectional(
-          top: 8,
-          start: 64,
-          child: Container(
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: 0.65),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.remove, color: Colors.white, size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 40),
-                  onPressed: _zoomOut,
-                ),
-                SizedBox(
-                  width: 50,
-                  child: TextField(
-                    controller: _zoomTextController,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
+        Positioned(
+          top: 4,
+          left: 0,
+          right: 0,
+          child: Center(
+            child: Container(
+              height: 40,
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.grey.shade800.withValues(alpha: 0.8)
+                    : Colors.grey.shade500.withValues(alpha: 0.8),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(
+                      Icons.remove,
                       color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+                      size: 20,
                     ),
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.zero,
-                      isDense: true,
-                    ),
-                    onSubmitted: _setZoomFromText,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 40),
+                    onPressed: _zoomOut,
+                    color: Colors.white,
                   ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.add, color: Colors.white, size: 20),
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 40),
-                  onPressed: _zoomIn,
-                ),
-              ],
+                  SizedBox(
+                    width: 50,
+                    child: TextField(
+                      controller: _zoomTextController,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      keyboardType: TextInputType.number,
+                      decoration: const InputDecoration(
+                        border: InputBorder.none,
+                        contentPadding: EdgeInsets.zero,
+                        isDense: true,
+                      ),
+                      onSubmitted: _setZoomFromText,
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.add, color: Colors.white, size: 20),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(minWidth: 40),
+                    color: Colors.white,
+                    onPressed: _zoomIn,
+                  ),
+                ],
+              ),
             ),
           ),
         ),

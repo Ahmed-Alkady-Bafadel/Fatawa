@@ -27,7 +27,8 @@ class _LoadingPageState extends State<LoadingPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
       body: SafeArea(
@@ -135,9 +136,7 @@ class _LoadingPageState extends State<LoadingPage> {
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: isDark
-                                      ? Colors.grey[400]
-                                      : AppColors.textSecondary,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],

@@ -3,28 +3,28 @@ import 'package:fatawa/data/datasources/fatwa_local_data_source.dart';
 import 'package:fatawa/data/datasources/fatwa_remote_data_source.dart';
 import 'package:fatawa/data/models/fatwa_model.dart';
 import 'package:fatawa/data/repositories/fatwa_repository.dart';
-import 'package:fatawa/core/theme/app_colors.dart';
+import 'package:fatawa/core/theme/app_colors.dart'; // مسار الثوابت
 import 'package:fatawa/presentation/cubit/fatwa_cubit.dart';
 import 'package:fatawa/presentation/cubit/fatwa_loading_cubit.dart';
 import 'package:fatawa/presentation/cubit/theme_cubit.dart';
 import 'package:fatawa/presentation/pages/loading_page.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 void main() async {
-  // التأكد من تهيئة بيئة فلاتر قبل تشغيل أي شيء غير متزامن (async)
   WidgetsFlutterBinding.ensureInitialized();
-  
-  // تهيئة قواعد البيانات المحلية (Hive)
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
   await Hive.initFlutter();
   Hive.registerAdapter(FatwaModelAdapter());
   await Hive.openBox<FatwaModel>('fatwas_box');
-  
-  // تهيئة الاتصال بالشبكة
+
   DioHelper.init();
 
-  // 💡 إنشاء طبقات البيانات (Data Layers) مرة واحدة فقط في بداية التطبيق
   final localDataSource = FatwaLocalDataSource();
   final remoteDataSource = FatwaRemoteDataSource(dio: DioHelper.dio);
   final repository = FatwaRepository(
@@ -37,18 +37,13 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final FatwaRepository repository;
-  
+
   const MyApp({super.key, required this.repository});
-  
+
   @override
   Widget build(BuildContext context) {
     return MultiRepositoryProvider(
-      providers: [
-        // 💡 التعديل الأهم: استخدمنا النسخة الممررة من main بدلاً من إنشاء نسخة جديدة
-        RepositoryProvider<FatwaRepository>.value(
-          value: repository,
-        ),
-      ],
+      providers: [RepositoryProvider<FatwaRepository>.value(value: repository)],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<FatwaLoadingCubit>(
@@ -66,40 +61,150 @@ class MyApp extends StatelessWidget {
               debugShowCheckedModeBanner: false,
               title: 'الفتاوى',
               themeMode: themeMode,
-              // 1. تفعيل اتجاه اليمين لليسار (RTL) افتراضياً في كل التطبيق
               builder: (context, child) {
                 return Directionality(
                   textDirection: TextDirection.rtl,
                   child: child!,
                 );
               },
-              // 2. تطبيق الثوابت والوضع الفاتح
+
+              // ==========================================
+              // 1. إعدادات الوضع الفاتح (Light Theme)
+              // ==========================================
               theme: ThemeData(
-                textTheme: const TextTheme(
-                  titleLarge: TextStyle(color: AppColors.textPrimary),
-                  titleMedium: TextStyle(color: AppColors.textSecondary),
-                  titleSmall: TextStyle(color: AppColors.textHint),
-                ),
+                useMaterial3: true,
                 fontFamily: 'IBMPlexSansArabic',
                 scaffoldBackgroundColor: AppColors.backgroundLight,
-                colorScheme: ColorScheme.fromSeed(
-                  seedColor: AppColors.primaryGreen,
+                colorScheme: const ColorScheme.light(
+                  primary: AppColors.primaryGreen,
+                  surface: AppColors.surfaceLight,
+                  error: AppColors.error,
+                  onSurface: AppColors.textPrimaryLight,
+                  onSurfaceVariant: AppColors.textSecondaryLight,
+                  outlineVariant: AppColors.borderLight,
+                  surfaceContainerHighest: AppColors.inputFillLight,
+                ),
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: AppColors.backgroundLight,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  iconTheme: IconThemeData(color: AppColors.textPrimaryLight),
+                  titleTextStyle: TextStyle(
+                    color: AppColors.textPrimaryLight,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'IBMPlexSansArabic',
+                  ),
+                ),
+                cardTheme: CardThemeData(
+                  color: AppColors.surfaceLight,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(
+                      color: AppColors.borderLight,
+                      width: 1,
+                    ),
+                  ),
+                ),
+                textTheme: const TextTheme(
+                  bodyLarge: TextStyle(color: AppColors.textPrimaryLight),
+                  bodyMedium: TextStyle(color: AppColors.textSecondaryLight),
+                  labelLarge: TextStyle(color: AppColors.textHintLight),
+                ),
+                inputDecorationTheme: InputDecorationTheme(
+                  filled: true,
+                  fillColor: AppColors.inputFillLight,
+                  hintStyle: const TextStyle(color: AppColors.textHintLight),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.borderLight),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: AppColors.primaryGreen,
+                      width: 2,
+                    ),
+                  ),
                 ),
               ),
-              // 3. مجهز للوضع الليلي مستقبلاً
+
+              // ==========================================
+              // 2. إعدادات الوضع الداكن (Dark Theme)
+              // ==========================================
               darkTheme: ThemeData(
+                useMaterial3: true,
                 fontFamily: 'IBMPlexSansArabic',
                 scaffoldBackgroundColor: AppColors.backgroundDark,
-                cardColor: AppColors.cardColorDark,
                 colorScheme: const ColorScheme.dark(
                   primary: AppColors.primaryGreen,
-                  secondary: AppColors.primaryGreen,
-                  surface: AppColors.cardColorDark,
+                  surface: AppColors.surfaceDark,
+                  error: AppColors.error,
+                  onSurface: AppColors.textPrimaryDark,
+                  onSurfaceVariant: AppColors.textSecondaryDark,
+                  outlineVariant: AppColors.borderDark,
+                  surfaceContainerHighest: AppColors.inputFillDark,
                 ),
-                iconTheme: const IconThemeData(color: Colors.white70),
+                appBarTheme: const AppBarTheme(
+                  backgroundColor: AppColors.backgroundDark,
+                  surfaceTintColor: Colors.transparent,
+                  elevation: 0,
+                  iconTheme: IconThemeData(color: AppColors.textPrimaryDark),
+                  titleTextStyle: TextStyle(
+                    color: AppColors.textPrimaryDark,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'IBMPlexSansArabic',
+                  ),
+                ),
+                cardTheme: CardThemeData(
+                  color: AppColors.surfaceDark,
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    side: const BorderSide(
+                      color: AppColors.borderDark,
+                      width: 1,
+                    ),
+                  ),
+                ),
                 textTheme: const TextTheme(
-                  bodyLarge: TextStyle(color: Colors.white),
-                  bodyMedium: TextStyle(color: Colors.white70),
+                  bodyLarge: TextStyle(color: AppColors.textPrimaryDark),
+                  bodyMedium: TextStyle(color: AppColors.textSecondaryDark),
+                  labelLarge: TextStyle(color: AppColors.textHintDark),
+                ),
+                inputDecorationTheme: InputDecorationTheme(
+                  filled: true,
+                  fillColor: AppColors.inputFillDark,
+                  hintStyle: const TextStyle(color: AppColors.textHintDark),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 14,
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: AppColors.borderDark),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: AppColors.primaryGreen,
+                      width: 2,
+                    ),
+                  ),
                 ),
               ),
               home: const LoadingPage(),

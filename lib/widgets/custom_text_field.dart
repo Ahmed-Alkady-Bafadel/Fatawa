@@ -1,6 +1,7 @@
 import 'package:fatawa/core/theme/app_colors.dart';
 import 'package:flutter/material.dart';
 
+
 class CustomTextFieldOptimized extends StatelessWidget {
   final String label;
   final String hint;
@@ -68,13 +69,13 @@ class _CustomTextFieldLabelWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isNarrow = MediaQuery.sizeOf(context).width < 350;
-
+    final theme = Theme.of(context);
     return Text(
       label,
       style: TextStyle(
         fontSize: isNarrow ? 12 : 14,
         fontWeight: FontWeight.w600,
-        color:  AppColors.textLabel,
+        color: theme.colorScheme.onSurface,
       ),
     );
   }
@@ -107,6 +108,7 @@ class _CustomTextFormFieldInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return TextFormField(
       controller: controller,
       validator: validator,
@@ -114,13 +116,11 @@ class _CustomTextFormFieldInput extends StatelessWidget {
       autovalidateMode: AutovalidateMode.onUserInteraction,
       obscureText: isPassword,
       keyboardType: keyboardType,
-      style: TextStyle(
-        fontSize: isNarrow ? 14 : 16,
-      ),
+      style: TextStyle(fontSize: isNarrow ? 14 : 16),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: TextStyle(
-          color: AppColors.textHint,
+          color: theme.colorScheme.onSurfaceVariant,
           fontSize: isNarrow ? 12 : 14,
         ),
         filled: filled,
@@ -133,13 +133,13 @@ class _CustomTextFormFieldInput extends StatelessWidget {
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: filled ? Colors.transparent : AppColors.inputBorder,
+            color: filled ? Colors.transparent : theme.colorScheme.outlineVariant,
           ),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: filled ? Colors.transparent : AppColors.inputBorder,
+            color: filled ? Colors.transparent : theme.colorScheme.outlineVariant,
           ),
         ),
         focusedBorder: OutlineInputBorder(

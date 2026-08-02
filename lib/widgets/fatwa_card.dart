@@ -12,7 +12,7 @@ class FatwaCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
 
     return Material(
       color: Colors.transparent,
@@ -45,7 +45,7 @@ class FatwaCardWidget extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
+                        color: theme.colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -55,9 +55,7 @@ class FatwaCardWidget extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 14,
-                        color: isDark
-                            ? Colors.grey[400]
-                            : AppColors.textSecondary,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -74,7 +72,7 @@ class FatwaCardWidget extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.grey[500] : Colors.grey[600],
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ),

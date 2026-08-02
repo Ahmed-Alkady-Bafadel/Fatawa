@@ -11,9 +11,9 @@ class FatwaModel extends HiveObject {
   @HiveField(2)
   final String pdfUrl; // المعرف الأساسي
   @HiveField(3)
-   bool isAnswered;
+  bool isAnswered;
   @HiveField(4)
-   String? localPdfPath; // إجابة عبر ملف PDF معدل
+  String? localPdfPath; // إجابة عبر ملف PDF معدل
   @HiveField(5)
   final String date;
   @HiveField(6)
@@ -30,9 +30,7 @@ class FatwaModel extends HiveObject {
     this.localAudioPath,
     this.textAnswer,
     String? date,
-  }) : date =
-           date ??
-           '${DateTime.now().month}/${DateTime.now().day}'; // تم تحسين شكل التاريخ
+  }) : date = '${DateTime.now().month}/${DateTime.now().day}';
 
   FatwaModel copyWith({
     String? title,
@@ -62,6 +60,7 @@ class FatwaModel extends HiveObject {
       questionSnippet: json['questionSnippet'] ?? 'لا يوجد نص للسؤال',
       pdfUrl: json['pdfUrl'] ?? '',
       isAnswered: json['isAnswered'] ?? false,
+      // date: '${DateTime.now().month}/${DateTime.now().day}',
     );
   }
 

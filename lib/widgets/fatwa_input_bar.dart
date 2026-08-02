@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:audio_waveforms/audio_waveforms.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -83,6 +84,7 @@ class FatwaInputBarState extends State<FatwaInputBar> {
     try {
       final hasPermission = await _recorderController.checkPermission();
       if (!hasPermission) return;
+      _audioFilePath = null;
       final dir = await getApplicationDocumentsDirectory();
       _audioFilePath =
           '${dir.path}/fatwa_audio_${DateTime.now().millisecondsSinceEpoch}.m4a';
@@ -103,6 +105,11 @@ class FatwaInputBarState extends State<FatwaInputBar> {
           updateFatws,
         );
 
+        await _playerController.preparePlayer(
+          path: tempPath,
+          shouldExtractWaveform: true,
+        );
+
         if (mounted) {
           setState(() {
             _audioFilePath = tempPath;
@@ -111,11 +118,6 @@ class FatwaInputBarState extends State<FatwaInputBar> {
             _currentDuration = 0;
             _isPlaying = false;
           });
-          await _playerController.preparePlayer(
-            path: tempPath,
-            shouldExtractWaveform: true,
-          );
-          if (mounted) setState(() {});
         }
       }
     } catch (e) {
@@ -124,15 +126,54 @@ class FatwaInputBarState extends State<FatwaInputBar> {
   }
 
   Future<void> _deleteRecording() async {
-    await stopAllActivities();
-    widget.fatwa.localAudioPath = null;
-    if (!mounted) return;
-    setState(() {
-      _hasRecorded = false;
-      _audioFilePath = null;
-      _currentDuration = 0;
-      _isPlaying = false;
-    });
+    try {
+      await stopAllActivities();
+      if (_audioFilePath != null) {
+        final file = File(_audioFilePath!);
+        if (await file.exists()) {
+          await file.delete();
+        }
+      }
+      widget.fatwa.localAudioPath = null;
+
+      _playerController.dispose();
+      _playerController = PlayerController();
+
+      _durationSubscription?.cancel();
+      _durationSubscription = _playerController.onCurrentDurationChanged.listen(
+        (duration) {
+          if (mounted && _playerController.playerState == PlayerState.playing) {
+            setState(() {
+              _currentDuration = duration;
+            });
+          }
+        },
+      );
+
+      _playerCompletionSubscription = _playerController.onCompletion.listen((
+        _,
+      ) async {
+        if (mounted) {
+          setState(() {
+            _isPlaying = false;
+            _currentDuration = 0;
+          });
+        }
+        try {
+          await _playerController.seekTo(0);
+        } catch (_) {}
+      });
+
+      if (mounted) {
+        setState(() {
+          _hasRecorded = false;
+          _audioFilePath = null;
+          _isRecordingMode = false;
+          _currentDuration = 0;
+          _isPlaying = false;
+        });
+      }
+    } catch (e) {}
   }
 
   Future<void> _togglePlayPause() async {
@@ -214,7 +255,7 @@ class FatwaInputBarState extends State<FatwaInputBar> {
                 widget.fatwa.textAnswer = text;
               },
               minLines: 1,
-              maxLines: widget.isLandscapeCompact ? 2 : 4,
+              
               decoration: InputDecoration(
                 hintText: 'اكتب إجابتك هنا...',
                 filled: true,

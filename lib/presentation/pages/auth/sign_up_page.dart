@@ -32,8 +32,8 @@ class _SignUpPageState extends State<SignUpPage> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Scaffold(
       body: SafeArea(
         child: LayoutBuilder(
@@ -103,9 +103,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                 'أدخل بياناتك للتسجيل',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: isDark
-                                      ? Colors.grey[400]
-                                      : AppColors.textSecondary,
+                                  color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
                               const SizedBox(height: 32),
@@ -172,9 +170,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                     _isPasswordObscured
                                         ? Icons.visibility_off_outlined
                                         : Icons.visibility_outlined,
-                                    color: isDark
-                                        ? Colors.grey[400]
-                                        : AppColors.textSecondary,
+                                    color: theme.colorScheme.onSurfaceVariant,
                                   ),
                                   onPressed: () {
                                     setState(() {
@@ -257,9 +253,7 @@ class _SignUpPageState extends State<SignUpPage> {
                                   Text(
                                     'لديك حساب بالفعل؟ ',
                                     style: TextStyle(
-                                      color: isDark
-                                          ? Colors.grey[400]
-                                          : AppColors.textSecondary,
+                                      color: theme.colorScheme.onSurfaceVariant,
                                     ),
                                   ),
                                   GestureDetector(
